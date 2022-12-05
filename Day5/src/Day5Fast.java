@@ -98,25 +98,22 @@ public class Day5Fast {
         var stackTwo = w.partTwo.stack;
         var countTwo = w.partTwo.count;
 
-        var pattern = Pattern.compile("[0-9]+");
-
         String line;
 
         while ((line = br.readLine()) != null) {
-            int[] move = pattern.matcher(line).results()
-                    .mapToInt(r -> Integer.parseInt(r.group()))
-                    .toArray();
+            String[] move = line.split(" ");
 
-            int fromCol = move[1] - 1;
-            int toCol = move[2] - 1;
+            int count = Integer.parseInt(move[1]);
+            int fromCol = Integer.parseInt(move[3]) - 1;
+            int toCol = Integer.parseInt(move[5]) - 1;
 
-            for (int i = 0; i < move[0]; i++) {
+            for (int i = 0; i < count; i++) {
                 stackOne[toCol][countOne[toCol]++] = stackOne[fromCol][--countOne[fromCol]];
-                stackTwo[toCol][countTwo[toCol]++] = stackTwo[fromCol][countTwo[fromCol]++ - move[0]];
+                stackTwo[toCol][countTwo[toCol]++] = stackTwo[fromCol][countTwo[fromCol]++ - count];
             }
 
             // Fix broken count, TODO: figure out better way to do so count don't break
-            countTwo[fromCol] -= move[0] * 2;
+            countTwo[fromCol] -= count * 2;
         }
     }
 
