@@ -32,12 +32,12 @@ public class Day5 {
         Stack<String> crateLines = new Stack<>();
 
         // First save all lines with crates for later
-        while ((line = br.readLine()) != null && line.trim().charAt(0) == '[') {
+        while ((line = br.readLine()) != null && line.charAt(1) != '1') {
             crateLines.push(line);
         }
 
         // Then parse how many stacks there are
-        int stackCount = (int) Pattern.compile("[0-9]+").matcher(line).results().count();
+        int stackCount = (line.length() + 2) / 4;
 
         Stack<Character>[] stacks = new Stack[stackCount];
         for (int i = 0; i < stacks.length; i++) {
@@ -50,8 +50,8 @@ public class Day5 {
 
             int stackIndex = 0;
             // Each stack is 3 chars wide, 1 char space in between
-            for (int j = 1; j < stackCount * 3 + (stackCount - 1); j += 4, ++stackIndex) {
-                char content = j < line.length() ? line.charAt(j) : ' ';
+            for (int j = 1; j < line.length(); j += 4, ++stackIndex) {
+                char content = line.charAt(j);
                 if (content != ' ')
                     stacks[stackIndex].push(line.charAt(j));
             }
