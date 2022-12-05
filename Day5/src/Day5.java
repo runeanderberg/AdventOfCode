@@ -3,7 +3,6 @@ import java.util.Arrays;
 import java.util.Stack;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class Day5 {
     public static void main(String[] args) throws IOException {
@@ -23,8 +22,8 @@ public class Day5 {
 
         Stack<Character>[] stacks = parseStacks(br);
         br.readLine();
+
         applyMoves(stacks, br);
-        printResults(stacks);
     }
 
     private static Stack<Character>[] parseStacks(BufferedReader br) throws IOException {
@@ -61,7 +60,14 @@ public class Day5 {
         return stacks;
     }
 
-    private static void applyMoves(Stack<Character>[] stacks, BufferedReader br) throws IOException {
+    private static void applyMoves(Stack<Character>[] stacksPartOne, BufferedReader br) throws IOException {
+        Stack<Character>[] stacksPartTwo = new Stack[stacksPartOne.length];
+        for (int i = 0; i < stacksPartOne.length; i++) {
+            stacksPartTwo[i] = (Stack) stacksPartOne[i].clone();
+        }
+
+        var tempStack = new Stack<Character>();
+
         var pattern = Pattern.compile("[0-9]+");
 
         String line;
@@ -72,9 +78,18 @@ public class Day5 {
                     .toArray();
 
             for (int i = 0; i < move[0]; i++) {
-                stacks[move[2] - 1].push(stacks[move[1] - 1].pop());
+                stacksPartOne[move[2] - 1].push(stacksPartOne[move[1] - 1].pop());
+
+                tempStack.push(stacksPartTwo[move[1] - 1].pop());
+            }
+
+            for (int i = 0; i < move[0]; i++) {
+                stacksPartTwo[move[2] - 1].push(tempStack.pop());
             }
         }
+
+        printResults(stacksPartOne);
+        printResults(stacksPartTwo);
     }
 
     private static void printResults(Stack<Character>[] stacks) {
