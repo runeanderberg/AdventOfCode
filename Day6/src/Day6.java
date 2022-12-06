@@ -74,24 +74,21 @@ public class Day6 {
         int placeIndex = 13;
         boolean hasDuplicates;
 
-        int[] occurrences = new int[26];
+        boolean[] occurrences = new boolean[26];
 
         while ((read = br.read()) != -1) {
             ++readCount;
 
             previous[placeIndex] = read;
 
-            Arrays.fill(occurrences, 0);
-            for (int c : previous) {
-                ++occurrences[c - 'a'];
-            }
-
             hasDuplicates = false;
-            for (int occurrence : occurrences) {
-                if (occurrence > 1) {
+            Arrays.fill(occurrences, false);
+            for (int c : previous) {
+                if (occurrences[c - 'a']) {
                     hasDuplicates = true;
                     break;
                 }
+                occurrences[c - 'a'] = true;
             }
 
             if (!hasDuplicates) {
