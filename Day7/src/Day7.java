@@ -3,6 +3,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Day7 {
+    private static final int TOTAL_DISK_SIZE = 70000000;
+    private static final int REQUIRED_UPDATE_SPACE = 30000000;
+
     public static void main(String[] args) throws IOException {
         long elapsedTimeSum = 0;
         for (int i = 0; i < 100000; i++) {
@@ -76,8 +79,8 @@ public class Day7 {
         var totalUsage = root.size();
         var target = 0;
 
-        if (totalUsage > 70000000 - 30000000) {
-            target = totalUsage - (70000000 - 30000000);
+        if (totalUsage > TOTAL_DISK_SIZE - REQUIRED_UPDATE_SPACE) {
+            target = totalUsage - (TOTAL_DISK_SIZE - REQUIRED_UPDATE_SPACE);
         }
 
         System.out.println(findDelete(root, target, Integer.MAX_VALUE));
@@ -117,6 +120,9 @@ class Directory implements Item {
     private final Directory parent;
     private final List<Item> children;
 
+    private int sizeCache;
+    private boolean sizeCacheValid;
+
     public Directory(String name, Directory parent) {
         this.name = name;
         this.parent = parent;
@@ -130,9 +136,14 @@ class Directory implements Item {
 
     @Override
     public int size() {
-        return children.stream()
-                .mapToInt(Item::size)
-                .sum();
+        if (!sizeCacheValid) {
+            sizeCache = children.stream()
+                    .mapToInt(Item::size)
+                    .sum();
+            sizeCacheValid = true;
+        }
+
+        return sizeCache;
     }
 
     @Override
@@ -146,6 +157,7 @@ class Directory implements Item {
 
     public void addChild(Item child) {
         this.children.add(child);
+        invalidateSizeCache();
     }
 
     public Item findChild(String name) {
@@ -157,5 +169,11 @@ class Directory implements Item {
 
     public List<Item> getChildren() {
         return children;
+    }
+
+    private void invalidateSizeCache() {
+        sizeCacheValid = false;
+        if (parent != null)
+            parent.invalidateSizeCache();
     }
 }
