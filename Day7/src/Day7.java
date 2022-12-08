@@ -83,22 +83,19 @@ public class Day7 {
             target = totalUsage - (TOTAL_DISK_SIZE - REQUIRED_UPDATE_SPACE);
         }
 
-        System.out.println(findDelete(root, target, Integer.MAX_VALUE));
+        System.out.println(findSizeOfSmallest(root, target, Integer.MAX_VALUE));
     }
 
-    private static int findDelete(Directory dir, int target, int smallest) {
-        var smallestInDir = dir.getChildren().stream()
-                .filter(Item::isDirectory)
-                .mapToInt(Item::size)
-                .filter(s -> s >= target && s < smallest)
-                .sorted().findFirst().orElse(Integer.MAX_VALUE);
+    private static int findSizeOfSmallest(Directory dir, int target, int smallest) {
+        if (dir.size() < target)
+            return Integer.MAX_VALUE;
 
         var smallestAmongChildren = dir.getChildren().stream()
                 .filter(Item::isDirectory)
-                .mapToInt(d -> findDelete((Directory) d, target, smallest))
+                .mapToInt(d -> findSizeOfSmallest((Directory) d, target, smallest))
                 .sorted().findFirst().orElse(Integer.MAX_VALUE);
 
-        return Math.min(Math.min(smallestInDir, smallestAmongChildren), smallest);
+        return Math.min(Math.min(dir.size(), smallestAmongChildren), smallest);
     }
 }
 
