@@ -11,6 +11,7 @@ public class Day8 {
             long startTime = System.nanoTime();
             var map = parseTreeMap();
             calculateVisibility(map);
+            calculateTreeScore(map);
             long elapsedTime = System.nanoTime() - startTime;
             elapsedTimeSum += elapsedTime;
         }
@@ -72,5 +73,40 @@ public class Day8 {
                 .sum();
 
         System.out.println(count);
+    }
+
+    private static void calculateTreeScore(char[][] map) {
+        int highestTreeScore = 0;
+
+        // TODO: less ugly way of doing this
+        for (int y = 1; y < map[0].length - 1; y++) {
+            for (int x = 1; x < map.length - 1; x++) {
+                int offsetNegX = 1;
+                while (x - (offsetNegX + 1) > -1 && map[x - offsetNegX][y] < map[x][y]) {
+                    ++offsetNegX;
+                }
+
+                int offsetPosX = 1;
+                while (x + (offsetPosX + 1) < map.length && map[x + offsetPosX][y] < map[x][y]) {
+                    ++offsetPosX;
+                }
+
+                int offsetNegY = 1;
+                while (y - (offsetNegY + 1) > -1 && map[x][y - offsetNegY] < map[x][y]) {
+                    ++offsetNegY;
+                }
+
+                int offsetPosY = 1;
+                while (y + (offsetPosY + 1) < map.length && map[x][y + offsetPosY] < map[x][y]) {
+                    ++offsetPosY;
+                }
+
+                int score = offsetNegX * offsetPosX * offsetNegY * offsetPosY;
+                if (score > highestTreeScore)
+                    highestTreeScore = score;
+            }
+        }
+
+        System.out.println(highestTreeScore);
     }
 }
