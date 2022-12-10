@@ -1,9 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.TreeSet;
 
 public class Day9 {
     public static void main(String[] args) throws IOException {
