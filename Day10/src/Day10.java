@@ -18,21 +18,19 @@ public class Day10 {
         var input = new java.io.File("inputs/day10.txt");
         var br = new BufferedReader(new FileReader(input));
 
-        var cpu = new Computer();
+        var computer = new Computer();
         String line;
 
         while ((line = br.readLine()) != null) {
             if (line.charAt(0) == 'n') {
-                cpu.noop();
+                computer.noop();
             } else {
-                cpu.addx(Integer.parseInt(line.substring(5)));
+                computer.addx(Integer.parseInt(line.substring(5)));
             }
         }
 
-        cpu.printSum();
+        computer.printSum();
     }
-
-
 }
 
 class Computer {
