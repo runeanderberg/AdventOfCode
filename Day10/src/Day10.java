@@ -18,7 +18,7 @@ public class Day10 {
         var input = new java.io.File("inputs/day10.txt");
         var br = new BufferedReader(new FileReader(input));
 
-        var cpu = new CPU();
+        var cpu = new Computer();
         String line;
 
         while ((line = br.readLine()) != null) {
@@ -35,7 +35,7 @@ public class Day10 {
 
 }
 
-class CPU {
+class Computer {
     private int cycleCounter;
     private int signalStrengthSum;
     private int registerValue = 1;
@@ -55,7 +55,19 @@ class CPU {
     }
 
     private void cycle() {
+        int pixel = cycleCounter % 40;
+
+        if (pixel == registerValue - 1 || pixel == registerValue || pixel == registerValue + 1) {
+            System.out.print('#');
+        } else {
+            System.out.print('.');
+        }
+
         ++cycleCounter;
+
+        if (cycleCounter % 40 == 0)
+            System.out.println();
+
         if ((cycleCounter - 20) % 40 == 0)
             signalStrengthSum += cycleCounter * registerValue;
     }
