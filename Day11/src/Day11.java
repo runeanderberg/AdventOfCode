@@ -125,11 +125,8 @@ public class Day11 {
                         item *= monkey.value != 0 ? monkey.value : item;
 
                     // Use LCM to keep values from becoming insanely large
-                    if (item > lcm) {
+                    if (item > lcm)
                         item %= lcm;
-                        if (item < 0)
-                            item += lcm;
-                    }
 
                     if (item % monkey.testFactor == 0)
                         monkeys.get(monkey.trueTarget).items.add(item);
