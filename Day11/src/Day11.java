@@ -9,8 +9,16 @@ public class Day11 {
         long elapsedTimeSum = 0;
         for (int i = 0; i < 1000; i++) {
             long startTime = System.nanoTime();
-            var monkeys = parseInput();
-            calculatePartOne(monkeys);
+
+            var monkeysPartOne = parseInput();
+            var monkeysPartTwo = new ArrayList<Monkey>();
+            for (var monkey : monkeysPartOne) {
+                monkeysPartTwo.add(monkey.copy());
+            }
+
+            calculatePartOne(monkeysPartOne);
+            calculatePartTwo(monkeysPartTwo);
+
             long elapsedTime = System.nanoTime() - startTime;
             elapsedTimeSum += elapsedTime;
         }
@@ -37,7 +45,7 @@ public class Day11 {
             line = br.readLine();
             monkey.items.addAll(
                     itemPattern.matcher(line).results()
-                            .mapToInt(r -> Integer.parseInt(r.group()))
+                            .mapToLong(r -> Integer.parseInt(r.group()))
                             .boxed()
                             .toList()
             );
@@ -48,7 +56,7 @@ public class Day11 {
             try {
                 monkey.value = Integer.parseInt(line.substring(25));
             } catch (NumberFormatException ignored) {
-
+                monkey.value = 0;
             }
 
 
@@ -65,7 +73,7 @@ public class Day11 {
             monkey.falseTarget = Integer.parseInt(line.substring(30));
 
             // Empty line separating monkeys
-            line = br.readLine();
+            br.readLine();
         }
 
         return monkeys;
@@ -76,9 +84,9 @@ public class Day11 {
             for (var monkey : monkeys) {
                 for (var item : monkey.items) {
                     if (monkey.operator == '+')
-                        item += monkey.value != null ? monkey.value : item;
+                        item += monkey.value;
                     else if (monkey.operator == '*')
-                        item *= monkey.value != null ? monkey.value : item;
+                        item *= monkey.value != 0 ? monkey.value : item;
 
                     item /= 3;
 
@@ -100,15 +108,70 @@ public class Day11 {
                         .reduce(Math::multiplyExact).orElse(0)
         );
     }
+
+    private static void calculatePartTwo(List<Monkey> monkeys) {
+        // Calculate LCM
+        var lcm = 1;
+        for (var monkey : monkeys) {
+            lcm *= monkey.testFactor;
+        }
+
+        for (int round = 0; round < 10000; round++) {
+            for (var monkey : monkeys) {
+                for (var item : monkey.items) {
+                    if (monkey.operator == '+')
+                        item += monkey.value;
+                    else if (monkey.operator == '*')
+                        item *= monkey.value != 0 ? monkey.value : item;
+
+                    // Use LCM to keep values from becoming insanely large
+                    if (item > lcm) {
+                        item %= lcm;
+                        if (item < 0)
+                            item += lcm;
+                    }
+
+                    if (item % monkey.testFactor == 0)
+                        monkeys.get(monkey.trueTarget).items.add(item);
+                    else
+                        monkeys.get(monkey.falseTarget).items.add(item);
+                }
+                monkey.inspectionCount += monkey.items.size();
+                monkey.items.clear();
+            }
+        }
+
+        System.out.println(
+                monkeys.stream()
+                        .map(m -> (long) m.inspectionCount)
+                        .sorted(Collections.reverseOrder())
+                        .limit(2)
+                        .reduce(Math::multiplyExact).orElse(0L)
+        );
+    }
 }
 
 class Monkey {
     int id;
-    List<Integer> items = new LinkedList<>();
+    List<Long> items = new LinkedList<>();
     char operator;
-    Integer value;
+    int value;
     int testFactor;
     int trueTarget;
     int falseTarget;
     int inspectionCount;
+
+    Monkey copy() {
+        var monkey = new Monkey();
+
+        monkey.id = id;
+        monkey.operator = operator;
+        monkey.value = value;
+        monkey.testFactor = testFactor;
+        monkey.trueTarget = trueTarget;
+        monkey.falseTarget = falseTarget;
+        monkey.items.addAll(items);
+
+        return monkey;
+    }
 }
