@@ -11,7 +11,7 @@ public class Day12 {
             long startTime = System.nanoTime();
 
             var map = new Map(parseInput());
-            calculatePartOne(map);
+            calculate(map);
 
             long elapsedTime = System.nanoTime() - startTime;
             elapsedTimeSum += elapsedTime;
@@ -26,9 +26,10 @@ public class Day12 {
         return br.lines().map(String::toCharArray).toArray(char[][]::new);
     }
 
-    private static void calculatePartOne(Map map) {
+    private static void calculate(Map map) {
         var queue = new LinkedList<Point>();
-        queue.add(map.start);
+        queue.add(map.end);
+        map.setDistanceTo(map.end.x, map.end.y, 0);
 
         Point current;
         int x, y;
@@ -59,7 +60,17 @@ public class Day12 {
             }
         }
 
-        System.out.println(map.getDistanceTo(map.end.x, map.end.y));
+        System.out.println(map.getDistanceTo(map.start.x, map.start.y));
+
+        int smallest = Integer.MAX_VALUE;
+        for (x = 0; x < map.sizeY; x++) {
+            for (y = 0; y < map.sizeX; y++) {
+                if (map.heightAt(x, y) == 'a' && map.getDistanceTo(x, y) < smallest)
+                    smallest = map.getDistanceTo(x, y);
+            }
+        }
+
+        System.out.println(smallest);
     }
 }
 
@@ -92,7 +103,6 @@ class Map {
 
         this.heightMap[start.y][start.x] = 'a';
         this.heightMap[end.y][end.x] = 'z';
-        distanceMap[start.y][start.x] = 0;
     }
 
     public char heightAt(int x, int y) {
@@ -108,7 +118,7 @@ class Map {
     }
 
     public boolean traversable(int currentX, int currentY, int targetX, int targetY) {
-        return heightDifference(currentX, currentY, targetX, targetY) <= 1;
+        return heightDifference(currentX, currentY, targetX, targetY) >= -1;
     }
 
     public int heightDifference(int x1, int y1, int x2, int y2) {
@@ -123,5 +133,9 @@ class Map {
         return validCoordinate(targetX, targetY)
                 && traversable(currentX, currentY, targetX, targetY)
                 && getDistanceTo(targetX, targetY) > getDistanceTo(currentX, currentY) + 1;
+    }
+
+    public int[][] getDistanceMap() {
+        return distanceMap;
     }
 }
