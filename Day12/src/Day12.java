@@ -2,6 +2,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedList;
 
 public class Day12 {
     public static void main(String[] args) throws IOException {
@@ -26,45 +27,39 @@ public class Day12 {
     }
 
     private static void calculatePartOne(Map map) {
-        System.out.println(step(map, map.start.x, map.start.y, 0));
-    }
+        var queue = new LinkedList<Point>();
+        queue.add(map.start);
 
-    private static int step(Map map, int x, int y, int steps) {
-        // If outside of map or already visited in fewer steps
-        if (!map.validCoordinate(x, y) || map.getDistanceTo(x, y) <= steps)
-            return Integer.MAX_VALUE;
+        Point current;
+        int x, y;
+        while (!queue.isEmpty()) {
+            current = queue.pop();
 
-        map.setDistanceTo(x, y, steps);
+            x = current.x;
+            y = current.y;
 
-        // If this is end, done
-        if (x == map.end.x && y == map.end.y)
-            return 0;
+            if (map.shouldCheck(x, y, x + 1, y)) {
+                map.setDistanceTo(x + 1, y, map.getDistanceTo(x, y) + 1);
+                queue.add(new Point(x + 1, y));
+            }
 
-        // Check neighbours
-        int posXRes = Integer.MAX_VALUE;
-        int negYRes = Integer.MAX_VALUE;
-        int posYRes = Integer.MAX_VALUE;
-        int negXRes = Integer.MAX_VALUE;
+            if (map.shouldCheck(x, y, x - 1, y)) {
+                map.setDistanceTo(x - 1, y, map.getDistanceTo(x, y) + 1);
+                queue.add(new Point(x - 1, y));
+            }
 
-        if (map.validCoordinate(x + 1, y) && map.traversable(x, y, x + 1, y)) {
-            posXRes = step(map, x + 1, y, steps + 1);
+            if (map.shouldCheck(x, y, x, y + 1)) {
+                map.setDistanceTo(x, y + 1, map.getDistanceTo(x, y) + 1);
+                queue.add(new Point(x, y + 1));
+            }
+
+            if (map.shouldCheck(x, y, x, y - 1)) {
+                map.setDistanceTo(x, y - 1, map.getDistanceTo(x, y) + 1);
+                queue.add(new Point(x, y - 1));
+            }
         }
 
-        if (map.validCoordinate(x - 1, y) && map.traversable(x, y, x - 1, y)) {
-            negXRes = step(map, x - 1, y, steps + 1);
-        }
-
-        if (map.validCoordinate(x, y + 1) && map.traversable(x, y, x, y + 1)) {
-            posYRes = step(map, x, y + 1, steps + 1);
-        }
-
-        if (map.validCoordinate(x, y - 1) && map.traversable(x, y, x, y - 1)) {
-            negYRes = step(map, x, y - 1, steps + 1);
-        }
-
-        var min = Math.min(Math.min(posXRes, negXRes), Math.min(posYRes, negYRes));
-
-        return min == Integer.MAX_VALUE ? min : min + 1;
+        System.out.println(map.getDistanceTo(map.end.x, map.end.y));
     }
 }
 
@@ -95,8 +90,9 @@ class Map {
             }
         }
 
-        heightMap[start.y][start.x] = 'a';
-        heightMap[end.y][end.x] = 'z';
+        this.heightMap[start.y][start.x] = 'a';
+        this.heightMap[end.y][end.x] = 'z';
+        distanceMap[start.y][start.x] = 0;
     }
 
     public char heightAt(int x, int y) {
@@ -121,5 +117,11 @@ class Map {
 
     public boolean validCoordinate(int x, int y) {
         return x >= 0 && y >= 0 && x < sizeY && y < sizeX;
+    }
+
+    public boolean shouldCheck(int currentX, int currentY, int targetX, int targetY) {
+        return validCoordinate(targetX, targetY)
+                && traversable(currentX, currentY, targetX, targetY)
+                && getDistanceTo(targetX, targetY) > getDistanceTo(currentX, currentY) + 1;
     }
 }
