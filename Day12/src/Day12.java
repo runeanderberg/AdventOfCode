@@ -63,8 +63,8 @@ public class Day12 {
         System.out.println(map.getDistanceTo(map.start.x, map.start.y));
 
         int smallest = Integer.MAX_VALUE;
-        for (x = 0; x < map.sizeY; x++) {
-            for (y = 0; y < map.sizeX; y++) {
+        for (y = 0; y < map.sizeY; y++) {
+            for (x = 0; x < map.sizeX; x++) {
                 if (map.heightAt(x, y) == 'a' && map.getDistanceTo(x, y) < smallest)
                     smallest = map.getDistanceTo(x, y);
             }
@@ -86,12 +86,12 @@ class Map {
 
     public Map(char[][] heightMap) {
         this.heightMap = heightMap;
-        this.sizeX = heightMap.length;
-        this.sizeY = heightMap[0].length;
-        this.distanceMap = new int[sizeX][sizeY];
+        this.sizeX = heightMap[0].length;
+        this.sizeY = heightMap.length;
+        this.distanceMap = new int[sizeY][sizeX];
 
-        for (int y = 0; y < heightMap.length; y++) {
-            for (int x = 0; x < heightMap[0].length; x++) {
+        for (int y = 0; y < sizeY; y++) {
+            for (int x = 0; x < sizeX; x++) {
                 if (heightAt(x, y) == 'S') {
                     start = new Point(x, y);
                 } else if (heightAt(x, y) == 'E') {
@@ -126,16 +126,12 @@ class Map {
     }
 
     public boolean validCoordinate(int x, int y) {
-        return x >= 0 && y >= 0 && x < sizeY && y < sizeX;
+        return x >= 0 && y >= 0 && x < sizeX && y < sizeY;
     }
 
     public boolean shouldCheck(int currentX, int currentY, int targetX, int targetY) {
         return validCoordinate(targetX, targetY)
                 && traversable(currentX, currentY, targetX, targetY)
                 && getDistanceTo(targetX, targetY) > getDistanceTo(currentX, currentY) + 1;
-    }
-
-    public int[][] getDistanceMap() {
-        return distanceMap;
     }
 }
