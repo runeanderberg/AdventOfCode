@@ -2,7 +2,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class Day13 {
@@ -12,6 +11,7 @@ public class Day13 {
             long startTime = System.nanoTime();
 
             var pairs = parseInput();
+            calculate(pairs);
 
             long elapsedTime = System.nanoTime() - startTime;
             elapsedTimeSum += elapsedTime;
@@ -79,15 +79,63 @@ public class Day13 {
 
         return array;
     }
+
+    private static void calculate(List<Pair> pairs) {
+        int sum = 0;
+        for (int i = 0; i < pairs.size(); i++) {
+            Pair pair = pairs.get(i);
+            if (validateLists(pair.left, pair.right))
+                sum += i + 1;
+        }
+        System.out.println(sum);
+    }
+
+    private static boolean validateLists(Array left, Array right) {
+        var i = 0;
+
+        while (true) {
+            if (i >= left.value.size()) return true;
+            if (i >= right.value.size()) return false;
+
+            var leftItem = left.value.get(i);
+            var rightItem = right.value.get(i);
+
+            if (!leftItem.isArray() && !rightItem.isArray()) {
+                int leftValue = ((Number) leftItem).value;
+                int rightValue = ((Number) rightItem).value;
+                if (leftValue < rightValue)
+                    return true;
+                else if (leftValue > rightValue)
+                    return false;
+            } else if (leftItem.isArray() && rightItem.isArray()) {
+                if (!validateLists((Array) leftItem, (Array) rightItem))
+                    return false;
+            } else {
+                if (leftItem.isArray()) {
+                    var tempRight = new Array();
+                    tempRight.value.add(new Number(((Number) rightItem).value));
+                    if (!validateLists((Array) leftItem, tempRight))
+                        return false;
+                } else {
+                    var tempLeft = new Array();
+                    tempLeft.value.add(new Number(((Number) leftItem).value));
+                    if (!validateLists(tempLeft, (Array) rightItem))
+                        return false;
+                }
+            }
+
+            i++;
+        }
+    }
 }
 
 class Pair {
-    Array first;
-    Array second;
+    Array left;
+    Array right;
 
-    public Pair(Array first, Array second) {
-        this.first = first;
-        this.second = second;
+    public Pair(Array left, Array right) {
+        this.left = left;
+        this.right = right;
     }
 }
 
@@ -114,7 +162,7 @@ class Number implements Item {
 }
 
 class Array implements Item {
-    public List<Item> value = new LinkedList<>();
+    public List<Item> value = new ArrayList<>();
     public Array parent;
 
     @Override
