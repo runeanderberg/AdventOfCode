@@ -1,34 +1,34 @@
 ﻿using System.Text;
 
-var lines = File.ReadLines("input.txt");
+var lines = File.ReadLines("input.txt").ToArray();
 
 var firstSum = lines
-    .Select(l => l.Where(c => c is >= '0' and <= '9').ToArray())
-    .Select(ca => int.Parse(ca[0].ToString() + ca[^1]))
+    .Select(line => line.Where(char.IsDigit).ToArray())
+    .Select(chars => int.Parse($"{chars[0]}{chars[^1]}"))
     .Sum();
 
-var replacementTableList = new Dictionary<string, string>
+var replacements = new List<(string OldChars, string NewChars)>
 {
-    { "one", "o1e" },
-    { "two", "t2o" },
-    { "three", "t3e" },
-    { "four", "f4r" },
-    { "five", "f5e" },
-    { "six", "s6x" },
-    { "seven", "s7n" },
-    { "eight", "e8t" },
-    { "nine", "n9e" }
-}.ToList();
+    ("one", "o1e"),
+    ("two", "t2o"),
+    ("three", "t3e"),
+    ("four", "f4r"),
+    ("five", "f5e"),
+    ("six", "s6x"),
+    ("seven", "s7n"),
+    ("eight", "e8t"),
+    ("nine", "n9e")
+};
 
 var secondSum = lines
-    .Select(l =>
+    .Select(line =>
     {
-        var sb = new StringBuilder(l);
-        replacementTableList.ForEach(r => sb.Replace(r.Key, r.Value));
-        return sb.ToString();
+        var stringBuilder = new StringBuilder(line);
+        replacements.ForEach(replacement => stringBuilder.Replace(replacement.OldChars, replacement.NewChars));
+        return stringBuilder.ToString();
     })
-    .Select(l => l.Where(c => c is >= '0' and <= '9').ToArray())
-    .Select(ca => int.Parse(ca[0].ToString() + ca[^1]))
+    .Select(line => line.Where(char.IsDigit).ToArray())
+    .Select(chars => int.Parse($"{chars[0]}{chars[^1]}"))
     .Sum();
 
 Console.WriteLine($"First sum = {firstSum}, Second sum = {secondSum}");
