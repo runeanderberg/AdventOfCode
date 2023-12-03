@@ -10,16 +10,7 @@ namespace Day03
 
             var numbers = GetNumbers(lines);
 
-            var symbols = new List<(char Character, (int i, int j) Coordinate)>();
-
-            for (var i = 0; i < lines.Length; i++)
-            {
-                for (var j = 0; j < lines[i].Length; j++)
-                {
-                    if (!char.IsDigit(lines[i][j]) && lines[i][j] != '.')
-                        symbols.Add((lines[i][j], (i, j)));
-                }
-            }
+            var symbols = GetSymbols(lines);
 
             var firstSum = numbers.Where(number =>
                     number.Coordinates.Any(coordinate =>
@@ -43,7 +34,7 @@ namespace Day03
 
         private static List<(int Value, List<(int I, int J)> Coordinates)> GetNumbers(string[] field)
         {
-            var result = new List<(int, List<(int i, int j)>)>();
+            var result = new List<(int, List<(int, int)>)>();
 
             for (var i = 0; i < field.Length; i++)
             {
@@ -72,6 +63,22 @@ namespace Day03
                     }
 
                     j++;
+                }
+            }
+
+            return result;
+        }
+
+        private static List<(char Character, (int I, int J) Coordinate)> GetSymbols(string[] field)
+        {
+            var result = new List<(char, (int, int))>();
+
+            for (var i = 0; i < field.Length; i++)
+            {
+                for (var j = 0; j < field[i].Length; j++)
+                {
+                    if (!char.IsDigit(field[i][j]) && field[i][j] != '.')
+                        result.Add((field[i][j], (i, j)));
                 }
             }
 
