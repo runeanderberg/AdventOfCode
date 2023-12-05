@@ -40,21 +40,19 @@
                 }
             }
 
-            var intervals = lines[0].Split(':')[1].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            var intervals = new Stack<Interval>(lines[0].Split(':')[1].Trim()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                 .Select(long.Parse).ToArray().Chunk(2).ToArray()
-                .Select(group => new Interval(group[0], group[0] + group[1] - 1)).ToList();
+                .Select(group => new Interval(group[0], group[0] + group[1] - 1)));
 
             foreach (var map in maps)
             {
-                Console.WriteLine("----------- beginning new mapping -----------");
-                foreach (var interval in intervals)
-                {
-                    Console.WriteLine(interval);
-                }
-
                 var newIntervals = new List<Interval>();
-                foreach (var interval in intervals)
+
+                while (intervals.Count > 0)
                 {
+                    var interval = intervals.Pop();
+
                     // Check if there is a map entry that overlaps with the interval
                     var match = map.FirstOrDefault(entry => entry.SourceInterval.HasOverlap(interval));
 
@@ -65,28 +63,23 @@
                         continue;
                     }
 
-                    Console.WriteLine($"match = {match}");
-
-                    // Else, keep non-overlapping bits unchanged but transform the overlapping part to new values
+                    // Else, transform overlapping values to new values, and add non-overlap to be checked again
                     var overlap = match.SourceInterval.GetOverlap(interval);
-                    var unchanged = interval.GetNonOverlap(overlap);
-                    newIntervals.AddRange(unchanged);
 
-                    Console.Write($"transformed {overlap} into ");
+                    var nonOverlaps = interval.GetNonOverlap(overlap);
+                    foreach (var nonOverlap in nonOverlaps)
+                    {
+                        intervals.Push(nonOverlap);
+                    }
 
                     overlap.MoveBy(match.Offset);
                     newIntervals.Add(overlap);
-                    Console.WriteLine(overlap);
-                }
-                
-                Console.WriteLine("-------");
-                foreach (var newInterval in newIntervals)
-                {
-                    Console.WriteLine(newInterval);
                 }
 
-                intervals.Clear();
-                intervals.AddRange(newIntervals);
+                foreach (var newInterval in newIntervals)
+                {
+                    intervals.Push(newInterval);
+                }
             }
 
             Console.WriteLine(
@@ -99,22 +92,12 @@
     {
         public Interval SourceInterval { get; set; } = sourceInterval;
         public long Offset { get; set; } = offset;
-
-        public override string ToString()
-        {
-            return $"map entry: {SourceInterval.Start + Offset} {SourceInterval.Start} {SourceInterval.End - SourceInterval.Start + 1} ({sourceInterval})";
-        }
     }
 
     internal class Interval(long start, long end)
     {
         public long Start { get; set; } = start;
         public long End { get; set; } = end;
-
-        public override string ToString()
-        {
-            return $"interval: [{Start},{End}]";
-        }
 
         public void MoveBy(long offset)
         {
