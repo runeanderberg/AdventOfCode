@@ -46,6 +46,12 @@
 
             foreach (var map in maps)
             {
+                Console.WriteLine("----------- beginning new mapping -----------");
+                foreach (var interval in intervals)
+                {
+                    Console.WriteLine(interval);
+                }
+
                 var newIntervals = new List<Interval>();
                 foreach (var interval in intervals)
                 {
@@ -59,16 +65,25 @@
                         continue;
                     }
 
+                    Console.WriteLine($"match = {match}");
+
                     // Else, keep non-overlapping bits unchanged but transform the overlapping part to new values
                     var overlap = match.SourceInterval.GetOverlap(interval);
                     var unchanged = interval.GetNonOverlap(overlap);
                     newIntervals.AddRange(unchanged);
 
+                    Console.Write($"transformed {overlap} into ");
+
                     overlap.MoveBy(match.Offset);
                     newIntervals.Add(overlap);
+                    Console.WriteLine(overlap);
                 }
-
-                var lowest = newIntervals.Min(interval => interval.Start);
+                
+                Console.WriteLine("-------");
+                foreach (var newInterval in newIntervals)
+                {
+                    Console.WriteLine(newInterval);
+                }
 
                 intervals.Clear();
                 intervals.AddRange(newIntervals);
@@ -84,12 +99,22 @@
     {
         public Interval SourceInterval { get; set; } = sourceInterval;
         public long Offset { get; set; } = offset;
+
+        public override string ToString()
+        {
+            return $"map entry: {SourceInterval.Start + Offset} {SourceInterval.Start} {SourceInterval.End - SourceInterval.Start + 1} ({sourceInterval})";
+        }
     }
 
     internal class Interval(long start, long end)
     {
         public long Start { get; set; } = start;
         public long End { get; set; } = end;
+
+        public override string ToString()
+        {
+            return $"interval: [{Start},{End}]";
+        }
 
         public void MoveBy(long offset)
         {
@@ -104,7 +129,7 @@
 
         public bool HasOverlap(Interval other)
         {
-            return Start < other.End && other.Start < End;
+            return Start <= other.End && other.Start <= End;
         }
 
         public Interval GetOverlap(Interval other)
