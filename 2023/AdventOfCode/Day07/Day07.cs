@@ -23,6 +23,7 @@
             long secondSum = 0;
             for (var i = 0; i < jokerHands.Count; i++)
             {
+                Console.WriteLine($"values {new string(jokerHands[i].Values)}, strength {jokerHands[i].Strength}");
                 secondSum += (i + 1) * jokerHands[i].Bid;
             }
 
@@ -79,66 +80,17 @@
 
             var numMatches = Values.Select(c => Values.Count(iC => iC == c || (UsesJokerRule && iC == 'J'))).ToArray();
 
-            if (!UsesJokerRule)
-                switch (numMatches.Max())
-                {
-                    case 5 or 4:
-                        Strength = numMatches.Max() + 1;
-                        break;
-                    case 3:
-                        Strength = numMatches.Any(m => m == 2) ? 4 : 3;
-                        break;
-                    default:
-                    {
-                        if (numMatches.Count(m => m == 2) == 4)
-                        {
-                            Strength = 2;
-                        }
-                        else if (numMatches.Any(m => m == 2))
-                        {
-                            Strength = 1;
-                        }
-                        else
-                        {
-                            Strength = 0;
-                        }
+            var max = numMatches.Max();
 
-                        break;
-                    }
-                }
-            else
-                switch (numMatches.Max())
-                {
-                    case 5 or 4:
-                        Strength = numMatches.Max() + 1;
-                        break;
-                    case 3:
-                        if (values.Any(c => c == 'J'))
-                        {
-                            Strength = numMatches.Count(m => m == 3) == 4 ? 4 : 3;
-                            break;
-                        }
-
-                        Strength = numMatches.Count(m => m == 3) == 4 || numMatches.Any(m => m == 2) ? 4 : 3;
-                        break;
-                    default:
-                    {
-                        if (numMatches.Count(m => m == 2) == 4)
-                        {
-                            Strength = values.Any(c => c == 'J') ? 1 : 2;
-                        }
-                        else if (numMatches.Any(m => m == 2))
-                        {
-                            Strength = 1;
-                        }
-                        else
-                        {
-                            Strength = values.Any(c => c == 'J') ? 1 : 0;
-                        }
-
-                        break;
-                    }
-                }
+            Strength = max switch
+            {
+                5 or 4 => max + 1,
+                3 when UsesJokerRule && values.Any(c => c == 'J') => numMatches.Count(m => m == 3) == 4 ? 4 : 3,
+                3 => numMatches.Any(m => m == 2) ? 4 : 3,
+                2 when UsesJokerRule && values.Any(c => c == 'J') => 1,
+                2 => numMatches.Count(m => m == 2) == 4 ? 2 : 1,
+                _ => 0
+            };
         }
 
         public int CompareTo(Hand? other)
