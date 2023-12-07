@@ -23,7 +23,6 @@
             long secondSum = 0;
             for (var i = 0; i < jokerHands.Count; i++)
             {
-                Console.WriteLine($"values {new string(jokerHands[i].Values)}, strength {jokerHands[i].Strength}");
                 secondSum += (i + 1) * jokerHands[i].Bid;
             }
 
@@ -85,7 +84,7 @@
             Strength = max switch
             {
                 5 or 4 => max + 1,
-                3 when UsesJokerRule && values.Any(c => c == 'J') => numMatches.Count(m => m == 3) == 4 ? 4 : 3,
+                3 when UsesJokerRule && values.Any(c => c == 'J') => numMatches.Any(m => m == 2) ? 3 : 4,
                 3 => numMatches.Any(m => m == 2) ? 4 : 3,
                 2 when UsesJokerRule && values.Any(c => c == 'J') => 1,
                 2 => numMatches.Count(m => m == 2) == 4 ? 2 : 1,
@@ -97,12 +96,12 @@
         {
             if (other is null)
             {
-                return 1;
+                return -1;
             }
 
             if (this == other)
             {
-                return -1;
+                return 0;
             }
 
             if (Strength != other.Strength)
