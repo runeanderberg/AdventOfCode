@@ -113,6 +113,51 @@
                 steps++;
             }
 
+            // After done generating path map, replace S with correct path char
+            currentLongitude = startCoordinates.longitude;
+            currentLatitude = startCoordinates.latitude;
+            visitedMap[currentLongitude, currentLatitude] = true;
+            var emptyVisitedMap = new bool[map.GetLength(0), map.GetLength(1)];
+
+            var canConnectNorth = CanConnectNorth(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
+            var canConnectSouth = CanConnectSouth(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
+            var canConnectWest = CanConnectWest(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
+            var canConnectEast = CanConnectEast(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
+
+            // Can probably be expressed shorter with smart boolean algebra or something
+            if (canConnectNorth)
+            {
+                if (canConnectSouth)
+                {
+                    pathMap[currentLongitude, currentLatitude] = '|';
+                }
+                else if (canConnectWest)
+                {
+                    pathMap[currentLongitude, currentLatitude] = 'J';
+                }
+                else if (canConnectEast)
+                {
+                    pathMap[currentLongitude, currentLatitude] = 'L';
+                }
+            }
+            else if (canConnectSouth)
+            {
+                if (canConnectWest)
+                {
+                    pathMap[currentLongitude, currentLatitude] = '7';
+                }
+                else if (canConnectEast)
+                {
+                    pathMap[currentLongitude, currentLatitude] = 'F';
+                }
+            }
+            else if (canConnectEast && canConnectWest)
+            {
+                pathMap[currentLongitude, currentLatitude] = '-';
+            }
+
+
+            // Generate map marking inside and outside
             var insideOutsideMap = new char[map.GetLength(0), map.GetLength(1)];
 
             for (var latitude = 0; latitude < insideOutsideMap.GetLength(1); latitude++)
@@ -184,17 +229,20 @@
             {
                 for (var longitude = 0; longitude < map.GetLength(0); longitude++)
                 {
-                    var visited = visitedMap[longitude, latitude];
-
-                    var c = visited ? pathMap[longitude, latitude] : insideOutsideMap[longitude, latitude];
+                    // If square has been visited, it's part of path map, else inside/outside map
+                    var c = visitedMap[longitude, latitude] ? pathMap[longitude, latitude] : insideOutsideMap[longitude, latitude];
 
                     if (c == 'S' || map[longitude, latitude] == 'S')
                     {
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.ForegroundColor = ConsoleColor.Red;
                     }
                     else if (visitedMap[longitude, latitude])
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    }
+                    else if (c == 'I')
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
                     }
                     else
                     {
