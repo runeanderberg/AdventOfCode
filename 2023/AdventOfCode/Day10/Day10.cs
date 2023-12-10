@@ -28,14 +28,6 @@
             var visitedMap = new bool[longitudeLength, latitudeLength];
             var pathMap = new char[longitudeLength, latitudeLength];
 
-            for (var latitude = 0; latitude < latitudeLength; latitude++)
-            {
-                for (var longitude = 0; longitude < longitudeLength; longitude++)
-                {
-                    pathMap[longitude, latitude] = ' ';
-                }
-            }
-
             var currentLongitude = startCoordinates.longitude;
             var currentLatitude = startCoordinates.latitude;
             var steps = 0;
@@ -92,7 +84,7 @@
                             currentLongitude++;
                         else if (CanConnectSouth(currentLongitude, currentLatitude, map, visitedMap))
                             currentLatitude++;
-                        else if (CanConnectWest(currentLongitude, currentLatitude, map, visitedMap)) 
+                        else if (CanConnectWest(currentLongitude, currentLatitude, map, visitedMap))
                             currentLongitude--;
                         break;
                 }
@@ -139,11 +131,8 @@
             {
                 for (var longitude = 0; longitude < longitudeLength; longitude++)
                 {
-                    if (pathMap[longitude, latitude] != ' ')
-                    {
-                        insideOutsideMap[longitude, latitude] = ' ';
+                    if (pathMap[longitude, latitude] != 0)
                         continue;
-                    }
 
                     var outside = true;
                     var upwards = false;
@@ -179,7 +168,7 @@
                                 break;
                         }
                     }
-                    
+
                     insideOutsideMap[longitude, latitude] = outside ? 'O' : 'I';
                 }
             }
@@ -189,7 +178,9 @@
                 for (var longitude = 0; longitude < longitudeLength; longitude++)
                 {
                     // If square has been visited, it's part of path map, else inside/outside map
-                    var c = visitedMap[longitude, latitude] ? pathMap[longitude, latitude] : insideOutsideMap[longitude, latitude];
+                    var c = visitedMap[longitude, latitude]
+                        ? pathMap[longitude, latitude]
+                        : insideOutsideMap[longitude, latitude];
 
                     if (c == 'S' || map[longitude, latitude] == 'S')
                     {
@@ -223,6 +214,7 @@
 
                     Console.Write(formatted);
                 }
+
                 Console.Write('\n');
             }
 
@@ -251,7 +243,7 @@
 
             // Pipe north of self has to be |, 7, F, or S
             var c = map[longitude, latitude - 1];
-            return c is '|' or '7' or 'F' or 'S';   
+            return c is '|' or '7' or 'F' or 'S';
         }
 
         private static bool CanConnectSouth(int longitude, int latitude, char[,] map, bool[,] visited)
@@ -272,7 +264,7 @@
             if (longitude - 1 < 0)
                 return false;
 
-            if (visited[longitude -1, latitude])
+            if (visited[longitude - 1, latitude])
                 return false;
 
             // Pipe north of self has to be -, L, F, or S
