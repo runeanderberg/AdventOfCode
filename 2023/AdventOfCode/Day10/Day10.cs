@@ -124,37 +124,23 @@
             var canConnectWest = CanConnectWest(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
             var canConnectEast = CanConnectEast(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
 
-            // Can probably be expressed shorter with smart boolean algebra or something
-            if (canConnectNorth)
-            {
-                if (canConnectSouth)
-                {
-                    pathMap[currentLongitude, currentLatitude] = '|';
-                }
-                else if (canConnectWest)
-                {
-                    pathMap[currentLongitude, currentLatitude] = 'J';
-                }
-                else if (canConnectEast)
-                {
-                    pathMap[currentLongitude, currentLatitude] = 'L';
-                }
-            }
-            else if (canConnectSouth)
-            {
-                if (canConnectWest)
-                {
-                    pathMap[currentLongitude, currentLatitude] = '7';
-                }
-                else if (canConnectEast)
-                {
-                    pathMap[currentLongitude, currentLatitude] = 'F';
-                }
-            }
-            else if (canConnectEast && canConnectWest)
-            {
-                pathMap[currentLongitude, currentLatitude] = '-';
-            }
+            var replacement = ' ';
+            if (canConnectNorth && canConnectSouth)
+                replacement = '|';
+            else if (canConnectWest && canConnectEast)
+                replacement = '-';
+            else if (canConnectNorth && canConnectWest)
+                replacement = 'J';
+            else if (canConnectNorth && canConnectEast)
+                replacement = 'L';
+            else if (canConnectSouth && canConnectWest)
+                replacement = '7';
+            else if (canConnectSouth && canConnectEast)
+                replacement = 'F';
+            else
+                throw new Exception("Failed to find replacement character for S");
+
+            pathMap[currentLongitude, currentLatitude] = replacement;
 
 
             // Generate map marking inside and outside
@@ -179,45 +165,29 @@
                         var c = pathMap[i, latitude];
                         i++;
 
-                        if (c == '|')
+                        switch (c)
                         {
-                            outside = !outside;
-                        }
-
-                        if (c == 'F')
-                        {
-                            outside = !outside;
-                            upwards = true;
-                        }
-
-                        if (c == 'J')
-                        {
-                            if (upwards)
-                            {
-                                upwards = false;
-                            }
-                            else
-                            {
+                            case '|':
                                 outside = !outside;
-                            }
-                        }
-
-                        if (c == 'L')
-                        {
-                            outside = !outside;
-                            upwards = false;
-                        }
-
-                        if (c == '7')
-                        {
-                            if (!upwards)
-                            {
+                                break;
+                            case 'F':
+                                outside = !outside;
                                 upwards = true;
-                            }
-                            else
-                            {
+                                break;
+                            case 'J' when upwards:
+                                break;
+                            case 'J':
                                 outside = !outside;
-                            }
+                                break;
+                            case 'L':
+                                outside = !outside;
+                                upwards = false;
+                                break;
+                            case '7' when !upwards:
+                                break;
+                            case '7':
+                                outside = !outside;
+                                break;
                         }
                     }
                     
