@@ -7,7 +7,7 @@
             var lines = File.ReadLines("input.txt").ToArray();
 
             var map = new char[lines[0].Length, lines.Length];
-            (int longitude, int latitude) startCoordinates = (0, 0);
+            (int Longitude, int Latitude) startCoordinates = (0, 0);
 
             for (var latitude = 0; latitude < lines.Length; latitude++)
             {
@@ -25,85 +25,18 @@
             var longitudeLength = map.GetLength(0);
             var latitudeLength = map.GetLength(1);
 
-            var visitedMap = new bool[longitudeLength, latitudeLength];
             var pathMap = new char[longitudeLength, latitudeLength];
-
-            var currentLongitude = startCoordinates.longitude;
-            var currentLatitude = startCoordinates.latitude;
+            var currentLongitude = startCoordinates.Longitude;
+            var currentLatitude = startCoordinates.Latitude;
+            var previousLongitude = startCoordinates.Longitude;
+            var previousLatitude = startCoordinates.Latitude;
             var steps = 0;
-            while (true)
-            {
-                if (visitedMap[currentLongitude, currentLatitude])
-                    break;
 
-                var previousLongitude = currentLongitude;
-                var previousLatitude = currentLatitude;
-
-                switch (map[currentLongitude, currentLatitude])
-                {
-                    case '|':
-                        if (CanConnectNorth(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLatitude--;
-                        else if (CanConnectSouth(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLatitude++;
-                        break;
-                    case '-':
-                        if (CanConnectWest(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLongitude--;
-                        else if (CanConnectEast(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLongitude++;
-                        break;
-                    case 'L':
-                        if (CanConnectNorth(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLatitude--;
-                        else if (CanConnectEast(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLongitude++;
-                        break;
-                    case 'J':
-                        if (CanConnectNorth(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLatitude--;
-                        else if (CanConnectWest(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLongitude--;
-                        break;
-                    case '7':
-                        if (CanConnectSouth(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLatitude++;
-                        else if (CanConnectWest(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLongitude--;
-                        break;
-                    case 'F':
-                        if (CanConnectSouth(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLatitude++;
-                        else if (CanConnectEast(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLongitude++;
-                        break;
-                    case 'S':
-                        if (CanConnectNorth(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLatitude--;
-                        else if (CanConnectEast(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLongitude++;
-                        else if (CanConnectSouth(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLatitude++;
-                        else if (CanConnectWest(currentLongitude, currentLatitude, map, visitedMap))
-                            currentLongitude--;
-                        break;
-                }
-
-                visitedMap[previousLongitude, previousLatitude] = true;
-                pathMap[previousLongitude, previousLatitude] = map[previousLongitude, previousLatitude];
-
-                steps++;
-            }
-
-            // After done generating path map, replace S with correct path char
-            currentLongitude = startCoordinates.longitude;
-            currentLatitude = startCoordinates.latitude;
-            var emptyVisitedMap = new bool[longitudeLength, latitudeLength];
-
-            var canConnectNorth = CanConnectNorth(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
-            var canConnectSouth = CanConnectSouth(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
-            var canConnectWest = CanConnectWest(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
-            var canConnectEast = CanConnectEast(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
+            // First, replace S with correct pipe character
+            var canConnectNorth = CanConnectNorth(currentLongitude, currentLatitude, map);
+            var canConnectSouth = CanConnectSouth(currentLongitude, currentLatitude, map);
+            var canConnectWest = CanConnectWest(currentLongitude, currentLatitude, map);
+            var canConnectEast = CanConnectEast(currentLongitude, currentLatitude, map);
 
             char replacement;
             if (canConnectNorth && canConnectSouth)
@@ -123,6 +56,35 @@
 
             pathMap[currentLongitude, currentLatitude] = replacement;
 
+            // Then move in one of the possible directions
+            if (canConnectNorth)
+                currentLatitude--;
+            else if (canConnectEast)
+                currentLongitude++;
+            else if (canConnectSouth)
+                currentLatitude++;
+            else if (canConnectWest)
+                currentLongitude--;
+            steps++;
+
+            while (true)
+            {
+                if ((currentLongitude, currentLatitude) == startCoordinates)
+                    break;
+
+                var (longitudeDifference, latitudeDifference) = GetNextDiff(map[currentLongitude, currentLatitude],
+                    (previousLongitude - currentLongitude, previousLatitude - currentLatitude));
+
+                previousLongitude = currentLongitude;
+                previousLatitude = currentLatitude;
+
+                currentLongitude += longitudeDifference;
+                currentLatitude += latitudeDifference;
+                
+                pathMap[previousLongitude, previousLatitude] = map[previousLongitude, previousLatitude];
+
+                steps++;
+            }
 
             // Generate map marking inside and outside
             var insideOutsideMap = new char[longitudeLength, latitudeLength];
@@ -178,7 +140,7 @@
                 for (var longitude = 0; longitude < longitudeLength; longitude++)
                 {
                     // If square has been visited, it's part of path map, else inside/outside map
-                    var c = visitedMap[longitude, latitude]
+                    var c = pathMap[longitude, latitude] != 0
                         ? pathMap[longitude, latitude]
                         : insideOutsideMap[longitude, latitude];
 
@@ -186,7 +148,7 @@
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                     }
-                    else if (visitedMap[longitude, latitude])
+                    else if (pathMap[longitude, latitude] != 0)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                     }
@@ -233,56 +195,58 @@
             Console.Write($"Furthest distance from start = {steps / 2} steps, area enclosed by loop = {insideCount}");
         }
 
-        private static bool CanConnectNorth(int longitude, int latitude, char[,] map, bool[,] visited)
+        private static bool CanConnectNorth(int longitude, int latitude, char[,] map)
         {
             if (latitude - 1 < 0)
                 return false;
 
-            if (visited[longitude, latitude - 1])
-                return false;
-
             // Pipe north of self has to be |, 7, F, or S
             var c = map[longitude, latitude - 1];
-            return c is '|' or '7' or 'F' or 'S';
+            return c is '|' or '7' or 'F';
         }
 
-        private static bool CanConnectSouth(int longitude, int latitude, char[,] map, bool[,] visited)
+        private static bool CanConnectSouth(int longitude, int latitude, char[,] map)
         {
             if (latitude + 1 == map.GetLength(1))
                 return false;
 
-            if (visited[longitude, latitude + 1])
-                return false;
-
             // Pipe south of self has to be |, L, J, or S
             var c = map[longitude, latitude + 1];
-            return c is '|' or 'L' or 'J' or 'S';
+            return c is '|' or 'L' or 'J';
         }
 
-        private static bool CanConnectWest(int longitude, int latitude, char[,] map, bool[,] visited)
+        private static bool CanConnectWest(int longitude, int latitude, char[,] map)
         {
             if (longitude - 1 < 0)
                 return false;
 
-            if (visited[longitude - 1, latitude])
-                return false;
-
             // Pipe north of self has to be -, L, F, or S
             var c = map[longitude - 1, latitude];
-            return c is '-' or 'L' or 'F' or 'S';
+            return c is '-' or 'L' or 'F';
         }
 
-        private static bool CanConnectEast(int longitude, int latitude, char[,] map, bool[,] visited)
+        private static bool CanConnectEast(int longitude, int latitude, char[,] map)
         {
             if (longitude + 1 == map.GetLength(0))
                 return false;
-
-            if (visited[longitude + 1, latitude])
-                return false;
-
+            
             // Pipe east of self has to be -, J, 7, or S
             var c = map[longitude + 1, latitude];
-            return c is '-' or 'J' or '7' or 'S';
+            return c is '-' or 'J' or '7';
+        }
+
+        private static (int LongitudeDifference, int LatitudeDifference) GetNextDiff(char current, (int LongitudeDifference, int LatitudeDifference) previous)
+        {
+            return current switch
+            {
+                'F' => previous == (0, 1) ? (1, 0) : (0, 1),
+                '7' => previous == (0, 1) ? (-1, 0) : (0, 1),
+                'L' => previous == (0, -1) ? (1, 0) : (0, -1),
+                'J' => previous == (0, -1) ? (-1, 0) : (0, -1),
+                '|' => previous == (0, 1) ? (0, -1) : (0, 1),
+                '-' => previous == (1, 0) ? (-1, 0) : (1, 0),
+                _ => (0, 0)
+            };
         }
     }
 }
