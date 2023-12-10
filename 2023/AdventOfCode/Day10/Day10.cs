@@ -27,6 +27,15 @@
             var currentLatitude = startCoordinates.latitude;
 
             var visitedMap = new bool[map.GetLength(0), map.GetLength(1)];
+            var pathMap = new char[map.GetLength(0), map.GetLength(1)];
+
+            for (var latitude = 0; latitude < pathMap.GetLength(1); latitude++)
+            {
+                for (var longitude = 0; longitude < pathMap.GetLength(0); longitude++)
+                {
+                    pathMap[longitude, latitude] = ' ';
+                }
+            }
 
             var visitedStart = false;
             var steps = 0;
@@ -96,17 +105,90 @@
                 }
 
                 if (map[previousLongitude, previousLatitude] != 'S')
+                {
                     visitedMap[previousLongitude, previousLatitude] = true;
+                    pathMap[previousLongitude, previousLatitude] = map[previousLongitude, previousLatitude];
+                }
+                
                 steps++;
             }
-            
+
+            var insideOutsideMap = new char[map.GetLength(0), map.GetLength(1)];
+
+            for (var latitude = 0; latitude < insideOutsideMap.GetLength(1); latitude++)
+            {
+                for (var longitude = 0; longitude < insideOutsideMap.GetLength(0); longitude++)
+                {
+                    if (pathMap[longitude, latitude] != ' ')
+                    {
+                        insideOutsideMap[longitude, latitude] = ' ';
+                        continue;
+                    }
+
+                    var outside = true;
+                    var upwards = false;
+                    var i = longitude;
+
+                    while (i < map.GetLength(0))
+                    {
+                        var c = pathMap[i, latitude];
+                        i++;
+
+                        if (c == '|')
+                        {
+                            outside = !outside;
+                        }
+
+                        if (c == 'F')
+                        {
+                            outside = !outside;
+                            upwards = true;
+                        }
+
+                        if (c == 'J')
+                        {
+                            if (upwards)
+                            {
+                                upwards = false;
+                            }
+                            else
+                            {
+                                outside = !outside;
+                            }
+                        }
+
+                        if (c == 'L')
+                        {
+                            outside = !outside;
+                            upwards = false;
+                        }
+
+                        if (c == '7')
+                        {
+                            if (!upwards)
+                            {
+                                upwards = true;
+                            }
+                            else
+                            {
+                                outside = !outside;
+                            }
+                        }
+                    }
+                    
+                    insideOutsideMap[longitude, latitude] = outside ? 'O' : 'I';
+                }
+            }
+
             for (var latitude = 0; latitude < map.GetLength(1); latitude++)
             {
                 for (var longitude = 0; longitude < map.GetLength(0); longitude++)
                 {
-                    var c = map[longitude, latitude];
+                    var visited = visitedMap[longitude, latitude];
 
-                    if (c == 'S')
+                    var c = visited ? pathMap[longitude, latitude] : insideOutsideMap[longitude, latitude];
+
+                    if (c == 'S' || map[longitude, latitude] == 'S')
                     {
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                     }
@@ -118,13 +200,38 @@
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
                     }
-                    
-                    Console.Write(c);
+
+                    var formatted = c switch
+                    {
+                        '|' => '\u2502',
+                        '-' => '\u2500',
+                        'F' => '\u250c',
+                        '7' => '\u2510',
+                        'L' => '\u2514',
+                        'J' => '\u2518',
+                        'I' => 'I',
+                        'O' => 'O',
+                        _ => ' '
+                    };
+
+                    Console.Write(formatted);
                 }
                 Console.Write('\n');
             }
 
-            Console.Write($"Loop length / 2 = {steps / 2}");
+            var insideCount = 0;
+
+            for (var latitude = 0; latitude < insideOutsideMap.GetLength(1); latitude++)
+            {
+                for (var longitude = 0; longitude < insideOutsideMap.GetLength(0); longitude++)
+                {
+                    if (insideOutsideMap[longitude, latitude] == 'I')
+                        insideCount++;
+                }
+            }
+
+
+            Console.Write($"Loop length / 2 = {steps / 2}, inside = {insideCount}");
         }
 
         private static bool CanConnectNorth(int longitude, int latitude, char[,] map, bool[,] visited)
