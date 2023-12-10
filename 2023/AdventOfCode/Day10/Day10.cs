@@ -22,25 +22,28 @@
                 }
             }
 
-            var finished = false;
-            var currentLongitude = startCoordinates.longitude;
-            var currentLatitude = startCoordinates.latitude;
+            var longitudeLength = map.GetLength(0);
+            var latitudeLength = map.GetLength(1);
 
-            var visitedMap = new bool[map.GetLength(0), map.GetLength(1)];
-            var pathMap = new char[map.GetLength(0), map.GetLength(1)];
+            var visitedMap = new bool[longitudeLength, latitudeLength];
+            var pathMap = new char[longitudeLength, latitudeLength];
 
-            for (var latitude = 0; latitude < pathMap.GetLength(1); latitude++)
+            for (var latitude = 0; latitude < latitudeLength; latitude++)
             {
-                for (var longitude = 0; longitude < pathMap.GetLength(0); longitude++)
+                for (var longitude = 0; longitude < longitudeLength; longitude++)
                 {
                     pathMap[longitude, latitude] = ' ';
                 }
             }
 
-            var visitedStart = false;
+            var currentLongitude = startCoordinates.longitude;
+            var currentLatitude = startCoordinates.latitude;
             var steps = 0;
-            while (!finished)
+            while (true)
             {
+                if (visitedMap[currentLongitude, currentLatitude])
+                    break;
+
                 var previousLongitude = currentLongitude;
                 var previousLatitude = currentLatitude;
 
@@ -82,15 +85,7 @@
                         else if (CanConnectEast(currentLongitude, currentLatitude, map, visitedMap))
                             currentLongitude++;
                         break;
-                    case '.':
-                        break;
                     case 'S':
-                        if (visitedStart)
-                        {
-                            finished = true;
-                            break;
-                        }
-
                         if (CanConnectNorth(currentLongitude, currentLatitude, map, visitedMap))
                             currentLatitude--;
                         else if (CanConnectEast(currentLongitude, currentLatitude, map, visitedMap))
@@ -99,32 +94,26 @@
                             currentLatitude++;
                         else if (CanConnectWest(currentLongitude, currentLatitude, map, visitedMap)) 
                             currentLongitude--;
-
-                        visitedStart = true;
                         break;
                 }
 
-                if (map[previousLongitude, previousLatitude] != 'S')
-                {
-                    visitedMap[previousLongitude, previousLatitude] = true;
-                    pathMap[previousLongitude, previousLatitude] = map[previousLongitude, previousLatitude];
-                }
-                
+                visitedMap[previousLongitude, previousLatitude] = true;
+                pathMap[previousLongitude, previousLatitude] = map[previousLongitude, previousLatitude];
+
                 steps++;
             }
 
             // After done generating path map, replace S with correct path char
             currentLongitude = startCoordinates.longitude;
             currentLatitude = startCoordinates.latitude;
-            visitedMap[currentLongitude, currentLatitude] = true;
-            var emptyVisitedMap = new bool[map.GetLength(0), map.GetLength(1)];
+            var emptyVisitedMap = new bool[longitudeLength, latitudeLength];
 
             var canConnectNorth = CanConnectNorth(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
             var canConnectSouth = CanConnectSouth(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
             var canConnectWest = CanConnectWest(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
             var canConnectEast = CanConnectEast(currentLongitude, currentLatitude, pathMap, emptyVisitedMap);
 
-            var replacement = ' ';
+            char replacement;
             if (canConnectNorth && canConnectSouth)
                 replacement = '|';
             else if (canConnectWest && canConnectEast)
@@ -144,11 +133,11 @@
 
 
             // Generate map marking inside and outside
-            var insideOutsideMap = new char[map.GetLength(0), map.GetLength(1)];
+            var insideOutsideMap = new char[longitudeLength, latitudeLength];
 
-            for (var latitude = 0; latitude < insideOutsideMap.GetLength(1); latitude++)
+            for (var latitude = 0; latitude < latitudeLength; latitude++)
             {
-                for (var longitude = 0; longitude < insideOutsideMap.GetLength(0); longitude++)
+                for (var longitude = 0; longitude < longitudeLength; longitude++)
                 {
                     if (pathMap[longitude, latitude] != ' ')
                     {
@@ -160,7 +149,7 @@
                     var upwards = false;
                     var i = longitude;
 
-                    while (i < map.GetLength(0))
+                    while (i < longitudeLength)
                     {
                         var c = pathMap[i, latitude];
                         i++;
@@ -195,9 +184,9 @@
                 }
             }
 
-            for (var latitude = 0; latitude < map.GetLength(1); latitude++)
+            for (var latitude = 0; latitude < latitudeLength; latitude++)
             {
-                for (var longitude = 0; longitude < map.GetLength(0); longitude++)
+                for (var longitude = 0; longitude < longitudeLength; longitude++)
                 {
                     // If square has been visited, it's part of path map, else inside/outside map
                     var c = visitedMap[longitude, latitude] ? pathMap[longitude, latitude] : insideOutsideMap[longitude, latitude];
@@ -239,17 +228,17 @@
 
             var insideCount = 0;
 
-            for (var latitude = 0; latitude < insideOutsideMap.GetLength(1); latitude++)
+            for (var latitude = 0; latitude < latitudeLength; latitude++)
             {
-                for (var longitude = 0; longitude < insideOutsideMap.GetLength(0); longitude++)
+                for (var longitude = 0; longitude < longitudeLength; longitude++)
                 {
                     if (insideOutsideMap[longitude, latitude] == 'I')
                         insideCount++;
                 }
             }
 
-
-            Console.Write($"Loop length / 2 = {steps / 2}, inside = {insideCount}");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write($"Furthest distance from start = {steps / 2} steps, area enclosed by loop = {insideCount}");
         }
 
         private static bool CanConnectNorth(int longitude, int latitude, char[,] map, bool[,] visited)
