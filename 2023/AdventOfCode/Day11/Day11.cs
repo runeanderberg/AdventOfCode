@@ -23,16 +23,18 @@
             }
 
             var smallExpansionGalaxies = preExpansionGalaxies.Select(galaxy => galaxy.Clone()).ToList();
-            var firstSum = ExpandAndSumDistances(smallExpansionGalaxies, 1);
+            var firstSum = ExpandAndSumDistances(smallExpansionGalaxies, 2);
 
             var bigExpansionGalaxies = preExpansionGalaxies.Select(galaxy => galaxy.Clone()).ToList();
-            var secondSum = ExpandAndSumDistances(bigExpansionGalaxies, 999999);
+            var secondSum = ExpandAndSumDistances(bigExpansionGalaxies, 1000000);
 
             Console.WriteLine($"First sum = {firstSum}, second sum = {secondSum}");
         }
 
-        private static long ExpandAndSumDistances(IReadOnlyCollection<Galaxy> galaxies, int expansionAddition)
+        private static long ExpandAndSumDistances(IReadOnlyCollection<Galaxy> galaxies, int expansionFactor)
         {
+            var expansionAddition = expansionFactor - 1;
+
             // iterate over each row, if no galaxies on row, increment all galaxies' rows after it by expansion addition
             var max = galaxies.Max(galaxy => galaxy.Row);
             for (var row = 0; row < max; row++)
