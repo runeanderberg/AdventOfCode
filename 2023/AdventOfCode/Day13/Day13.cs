@@ -29,89 +29,110 @@
                 inputs.Add(input);
             }
 
-            // Search for horisontal reflections
-            var horisontalSum = 0;
-            foreach (var input in inputs)
-            {
-                for (var row = 0; row < input.GetLength(0) - 1; row++)
-                {
-                    var col = 0;
-                    while (col < input.GetLength(1) && input[row, col] == input[row + 1, col]) col++;
-
-                    if (col != input.GetLength(1))
-                        continue;
-
-                    // Found two matching horisontal lines => middle of pattern I think
-                    // Now check outwards until no longer matching
-                    var a = row - 1;
-                    var b = row + 2;
-                    var reflection = true;
-                    while (a >= 0 && b < input.GetLength(0))
-                    {
-                        col = 0;
-                        while (col < input.GetLength(1) && input[a, col] == input[b, col]) col++;
-
-                        if (col != input.GetLength(1))
-                        {
-                            // Found non-matching, not a reflection
-                            reflection = false;
-                            break;
-                        }
-
-                        a--;
-                        b++;
-                    }
-
-                    if (!reflection)
-                        continue;
-
-                    horisontalSum += 100 * (row + 1);
-                    break;
-                }
-            }
+            // Search for horizontal reflections
+            var potentialHorizontal = inputs.Select(input => (Input: input, Rows: FindPotentialHorizontalReflections(input)));
+            var horizontalSum = potentialHorizontal.Sum(potential => potential.Rows.Sum(row => TestHorizontalReflection(potential.Input, row)));
 
             // Search for vertical reflections
-            var verticalSum = 0;
-            foreach (var input in inputs)
+            var potentialVertical = inputs.Select(input => (Input: input, Cols: FindPotentialVerticalReflections(input)));
+            var verticalSum = potentialVertical.Sum(potential => potential.Cols.Sum(row => TestVerticalReflection(potential.Input, row)));
+
+
+            Console.WriteLine($"First sum = {horizontalSum + verticalSum}");
+        }
+
+        private static List<int> FindPotentialHorizontalReflections(char[,] input)
+        {
+            var numRows = input.GetLength(0);
+            var numCols = input.GetLength(1);
+
+            var list = new List<int>();
+
+            for (var row = 0; row < numRows - 1; row++)
             {
-                for (var col = 0; col < input.GetLength(1) - 1; col++)
-                {
-                    var row = 0;
-                    while (row < input.GetLength(0) && input[row, col] == input[row, col + 1]) row++;
+                var col = 0;
+                while (col < numCols && input[row, col] == input[row + 1, col]) col++;
 
-                    if (row != input.GetLength(0))
-                        continue;
+                if (col != numCols)
+                    continue;
 
-                    // Found two matching vertical lines => middle of pattern I think
-                    // Now check outwards until no longer matching
-                    var a = col - 1;
-                    var b = col + 2;
-                    var reflection = true;
-                    while (a >= 0 && b < input.GetLength(1))
-                    {
-                        row = 0;
-                        while (row < input.GetLength(0) && input[row, a] == input[row, b]) row++;
-
-                        if (row != input.GetLength(0))
-                        {
-                            // Found non-matching, not a reflection
-                            reflection = false;
-                            break;
-                        }
-
-                        a--;
-                        b++;
-                    }
-
-                    if (!reflection)
-                        continue;
-
-                    verticalSum += (col + 1);
-                    break;
-                }
+                list.Add(row);
             }
 
-            Console.WriteLine($"First sum = {horisontalSum + verticalSum}");
+            return list;
+        }
+
+        private static List<int> FindPotentialVerticalReflections(char[,] input)
+        {
+            var numRows = input.GetLength(0);
+            var numCols = input.GetLength(1);
+
+            var list = new List<int>();
+
+            for (var col = 0; col < numCols - 1; col++)
+            {
+                var row = 0;
+                while (row < numRows && input[row, col] == input[row, col + 1]) row++;
+
+                if (row != numRows)
+                    continue;
+
+                list.Add(col);
+            }
+
+            return list;
+        }
+
+        private static int TestHorizontalReflection(char[,] input, int startRow)
+        {
+            var numRows = input.GetLength(0);
+            var numCols = input.GetLength(1);
+
+            var a = startRow - 1;
+            var b = startRow + 2;
+
+            while (a >= 0 && b < numRows)
+            {
+                var col = 0;
+                while (col < numCols && input[a, col] == input[b, col]) col++;
+
+                if (col != numCols)
+                {
+                    // Found non-matching, not a reflection
+                    return 0;
+                }
+
+                a--;
+                b++;
+            }
+            
+            return 100 * (startRow + 1);
+        }
+
+        private static int TestVerticalReflection(char[,] input, int startCol)
+        {
+            var numRows = input.GetLength(0);
+            var numCols = input.GetLength(1);
+
+            var a = startCol - 1;
+            var b = startCol + 2;
+
+            while (a >= 0 && b < numCols)
+            {
+                var row = 0;
+                while (row < numRows && input[row, a] == input[row, b]) row++;
+
+                if (row != numRows)
+                {
+                    // Found non-matching, not a reflection
+                    return 0;
+                }
+
+                a--;
+                b++;
+            }
+
+            return startCol + 1;
         }
     }
 }
