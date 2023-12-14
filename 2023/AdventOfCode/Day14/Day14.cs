@@ -20,39 +20,28 @@
 
             var firstLoad = CalculateNorthLoad(input);
 
+            var previousCycles = new List<char[,]>();
+            int index;
+            int cycleLength;
             const int targetCycleCount = 1000000000;
-            const int initialCycleCount = 10000;
-
-            // Iterate a decent amount of times to stabilize
-            for (var i = 0; i < initialCycleCount; i++)
-            {
-                Cycle(input);
-            }
-
-            // Start searching for cycle length
-            var value = CalculateNorthLoad(input);
-            var cycleLength = 0;
 
             while (true)
             {
                 Cycle(input);
-                cycleLength++;
 
-                if (CalculateNorthLoad(input) == value)
+                index = previousCycles.FindIndex(previous => MultiDimensionalArraysAreEqual(previous, input));
+                if (index != -1)
+                {
+                    cycleLength = previousCycles.Count - index;
                     break;
+                }
+
+                previousCycles.Add((char[,]) input.Clone());
             }
 
-            // Continue cycle until right offset
-            var currentOffset = initialCycleCount % cycleLength;
-            var targetOffset = targetCycleCount % cycleLength;
+            var offset = (targetCycleCount - previousCycles.Count - 1) % cycleLength;
 
-            while (currentOffset != targetOffset)
-            {
-                Cycle(input);
-                currentOffset = (currentOffset + 1) % cycleLength;
-            }
-
-            var secondLoad = CalculateNorthLoad(input);
+            var secondLoad = CalculateNorthLoad(previousCycles[index + offset]);
 
             Console.WriteLine($"First north load = {firstLoad}, second north load = {secondLoad}");
         }
@@ -212,6 +201,13 @@
             }
 
             return load;
+        }
+
+        private static bool MultiDimensionalArraysAreEqual<T>(T[,] input1, T[,] input2)
+        {
+            return input1.Rank == input2.Rank &&
+                   Enumerable.Range(0, input1.Rank).All(dimension => input1.GetLength(dimension) == input2.GetLength(dimension)) &&
+                   input1.Cast<T>().SequenceEqual(input2.Cast<T>());
         }
     }
 }
