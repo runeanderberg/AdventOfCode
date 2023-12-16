@@ -40,6 +40,8 @@ namespace Day16
                         continue;
                     }
 
+                    previousBeamLocations.Add((beam.CurrentRow, beam.CurrentCol, beam.Direction));
+
                     switch (input[beam.CurrentRow, beam.CurrentCol])
                     {
                         case '/':
@@ -83,8 +85,6 @@ namespace Day16
                                 break;
                             }
                     }
-
-                    previousBeamLocations.Add((beam.CurrentRow, beam.CurrentCol, beam.Direction));
 
                     beam.Step();
 
