@@ -18,18 +18,40 @@ namespace Day16
                 }
             }
 
-            var beams = new List<Beam> { new(BeamDirection.Right, 0, 0) };
+            var startBeams = new List<Beam>();
+            var maxRow = input.GetLength(0);
+            var maxCol = input.GetLength(1);
 
+            for (var row = 0; row < maxRow; row++)
+            {
+                startBeams.Add(new Beam(BeamDirection.Right, row, 0));
+                startBeams.Add(new Beam(BeamDirection.Left, row, maxCol - 1));
+            }
+
+            for (var col = 0; col < maxCol; col++)
+            {
+                startBeams.Add(new Beam(BeamDirection.Down, 0, col));
+                startBeams.Add(new Beam(BeamDirection.Up, maxRow - 1, col));
+            }
+
+            var max = startBeams.Max(beam => CalculateEnergy(input, beam));
+
+            Console.WriteLine(
+                $"Number of energized tiles (part 1, part 2 max) = ({CalculateEnergy(input, new Beam(BeamDirection.Right, 0, 0))}, {max})");
+        }
+
+        private static int CalculateEnergy(char[,] input, Beam startBeam, bool printResultMap = false)
+        {
+            var maxRow = input.GetLength(0);
+            var maxCol = input.GetLength(1);
+
+            var beams = new List<Beam> { startBeam };
             var previousBeamLocations = new HashSet<(int Row, int Col, BeamDirection Direction)>();
 
             while (beams.Count > 0)
             {
                 var toAdd = new List<Beam>();
                 var toRemove = new List<Beam>();
-
-                //Console.Clear();
-                //PrintCurrentState(input, beams);
-                //Console.ReadLine();
 
                 foreach (var beam in beams)
                 {
@@ -67,29 +89,29 @@ namespace Day16
                         case '|' when beam.Direction is BeamDirection.Up or BeamDirection.Down:
                             break;
                         case '|':
-                            {
-                                beam.Direction = BeamDirection.Up;
-                                var newBeam = beam.GetSplitBeam();
-                                newBeam.Step();
-                                toAdd.Add(newBeam);
-                                break;
-                            }
+                        {
+                            beam.Direction = BeamDirection.Up;
+                            var newBeam = beam.GetSplitBeam();
+                            newBeam.Step();
+                            toAdd.Add(newBeam);
+                            break;
+                        }
                         case '-' when beam.Direction is BeamDirection.Left or BeamDirection.Right:
                             break;
                         case '-':
-                            {
-                                beam.Direction = BeamDirection.Left;
-                                var newBeam = beam.GetSplitBeam();
-                                newBeam.Step();
-                                toAdd.Add(newBeam);
-                                break;
-                            }
+                        {
+                            beam.Direction = BeamDirection.Left;
+                            var newBeam = beam.GetSplitBeam();
+                            newBeam.Step();
+                            toAdd.Add(newBeam);
+                            break;
+                        }
                     }
 
                     beam.Step();
 
-                    if (beam.CurrentRow < 0 || beam.CurrentRow >= input.GetLength(0) ||
-                        beam.CurrentCol < 0 || beam.CurrentCol >= input.GetLength(1))
+                    if (beam.CurrentRow < 0 || beam.CurrentRow >= maxRow ||
+                        beam.CurrentCol < 0 || beam.CurrentCol >= maxCol)
                     {
                         toRemove.Add(beam);
                     }
@@ -100,16 +122,20 @@ namespace Day16
                     beams.Remove(beam);
                 }
 
-                beams.AddRange(toAdd.Where(beam => beam.CurrentRow >= 0 && beam.CurrentRow < input.GetLength(0) && beam.CurrentCol >= 0 && beam.CurrentCol < input.GetLength(1)));
+                beams.AddRange(toAdd.Where(beam =>
+                    beam.CurrentRow >= 0 && beam.CurrentRow < maxRow && beam.CurrentCol >= 0 &&
+                    beam.CurrentCol < maxCol));
             }
 
-            Console.WriteLine($"First sum = {previousBeamLocations.DistinctBy(beam => (beam.Row, beam.Col)).Count()}");
+            if (!printResultMap)
+                return previousBeamLocations.DistinctBy(beam => (beam.Row, beam.Col)).Count();
 
-            for (var row = 0; row < input.GetLength(0); row++)
+            for (var row = 0; row < maxRow; row++)
             {
-                for (var col = 0; col < input.GetLength(1); col++)
+                for (var col = 0; col < maxCol; col++)
                 {
-                    var matchingBeams = previousBeamLocations.Where(beam => beam.Row == row && beam.Col == col).ToArray();
+                    var matchingBeams = previousBeamLocations.Where(beam => beam.Row == row && beam.Col == col)
+                        .ToArray();
 
                     Console.BackgroundColor = matchingBeams.Length > 0 ? ConsoleColor.DarkRed : ConsoleColor.Black;
 
@@ -119,42 +145,8 @@ namespace Day16
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.Write('\n');
             }
-        }
 
-        static void PrintCurrentState(char[,] input, IReadOnlyCollection<Beam> beams)
-        {
-            for (var row = 0; row < input.GetLength(0); row++)
-            {
-                for (var col = 0; col < input.GetLength(1); col++)
-                {
-                    var matchingBeams = beams.Where(beam => beam.CurrentRow == row && beam.CurrentCol == col).ToArray();
-
-                    if (matchingBeams.Length > 0)
-                    {
-                        if (matchingBeams.Length > 1)
-                        {
-                            Console.Write(matchingBeams.Length);
-                        }
-                        else
-                        {
-                            var c = matchingBeams[0].Direction switch
-                            {
-                                BeamDirection.Up => '^',
-                                BeamDirection.Down => 'v',
-                                BeamDirection.Left => '<',
-                                BeamDirection.Right => '>',
-                                _ => throw new ArgumentOutOfRangeException()
-                            };
-                            Console.Write(c);
-                        }
-                    }
-                    else
-                    {
-                        Console.Write(input[row, col]);
-                    }
-                }
-                Console.Write('\n');
-            }
+            return previousBeamLocations.DistinctBy(beam => (beam.Row, beam.Col)).Count();
         }
     }
 
