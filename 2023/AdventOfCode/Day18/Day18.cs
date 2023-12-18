@@ -5,86 +5,18 @@
         static void Main(string[] args)
         {
             var lines = File.ReadLines("input.txt").ToArray();
-
-            var digInstructions = lines.Select(line => line.Split(' '))
-                .Select(split => (Direction: split[0], Length: int.Parse(split[1])));
-
-            // Start digging at (0, 0), store coordinates of dug spaces
-            var points = new List<(int X, int Y)> { (0, 0) };
-            var currentX = 0;
-            var currentY = 0;
-
-            foreach (var (direction, length) in digInstructions)
-            {
-                switch (direction)
-                {
-                    case "U":
-                        currentY -= length;
-                        break;
-                    case "D":
-                        currentY += length;
-                        break;
-                    case "L":
-                        currentX -= length;
-                        break;
-                    case "R":
-                        currentX += length;
-                        break;
-                }
-
-                points.Add((currentX, currentY));
-            }
-
-            points = TranslatePoints(points);
-            var volume = CalculateVolume(points);
-
-            var lengthX = points.Max(space => space.X) + 1;
-            var lengthY = points.Max(space => space.Y) + 1;
             
-            //for (var y = 0; y < lengthY; y++)
-            //{
-            //    for (var x = 0; x < lengthX; x++)
-            //    {
-            //        Console.BackgroundColor = IsPointInPolygon((x, y), points) ? ConsoleColor.DarkRed : ConsoleColor.Black;
-            //        Console.Write(points.Any(point => point.X == x && point.Y == y) ? '#' : '.');
-            //    }
-            //    Console.BackgroundColor = ConsoleColor.Black;
-            //    Console.Write("\n");
-            //}
-
-            Console.WriteLine($"First sum = {volume}");
+            var digInstructions = lines.Select(line => line.Split(' '))
+                .Select(split => (Direction: split[0], Length: long.Parse(split[1])));
+            var vertices = GetVerticesFromDigInstructions(digInstructions);
+            var firstVolume = CalculateVolume(vertices);
 
             digInstructions = lines.Select(line => line.Split(' '))
-                .Select(split => (Direction: DirectionNumberToString(split[^1][^2..^1]), Length: Convert.ToInt32(split[^1][2..^2], 16)));
+                .Select(split => (Direction: DirectionNumberToString(split[^1][^2..^1]), Length: Convert.ToInt64(split[^1][2..^2], 16)));
+            vertices = GetVerticesFromDigInstructions(digInstructions);
+            var secondVolume = CalculateVolume(vertices);
 
-            currentX = 0;
-            currentY = 0;
-            points = new List<(int X, int Y)> { (0, 0) };
-
-            foreach (var (direction, length) in digInstructions)
-            {
-                switch (direction)
-                {
-                    case "U":
-                        currentY -= length;
-                        break;
-                    case "D":
-                        currentY += length;
-                        break;
-                    case "L":
-                        currentX -= length;
-                        break;
-                    case "R":
-                        currentX += length;
-                        break;
-                }
-
-                points.Add((currentX, currentY));
-            }
-
-            points = TranslatePoints(points);
-
-            // Calculating volume with point in polygon is just too slow, something something shoelace formula I'm guessing
+            Console.WriteLine($"Volumes (part 1, part 2) = ({firstVolume}, {secondVolume})");
         }
 
         private static string DirectionNumberToString(string direction)
@@ -99,68 +31,54 @@
             };
         }
 
-        private static List<(int X, int Y)> TranslatePoints(IReadOnlyCollection<(int X, int Y)> points)
+        private static List<(long X, long Y)> GetVerticesFromDigInstructions(IEnumerable<(string Direction, long length)> instructions)
         {
-            var minX = points.Min(space => space.X);
-            var minY = points.Min(space => space.Y);
+            // Start digging at (0, 0), store coordinates of dug spaces
+            var points = new List<(long X, long Y)> { (0, 0) };
+            long currentX = 0;
+            long currentY = 0;
 
-            return points.Select(point => (point.X - minX, point.Y - minY)).ToList();
-        }
-
-        private static long CalculateVolume(IList<(int X, int Y)> points)
-        {
-            var lengthX = points.Max(space => space.X) + 1;
-            var lengthY = points.Max(space => space.Y) + 1;
-
-            long area = 0;
-
-            for (var y = 0; y < lengthY; y++)
+            foreach (var (direction, length) in instructions)
             {
-                for (var x = 0; x < lengthX; x++)
+                switch (direction)
                 {
-                    if (IsPointInPolygon((x, y), points))
-                    {
-                        area++;
-                    }
+                    case "U":
+                        currentY -= length;
+                        break;
+                    case "D":
+                        currentY += length;
+                        break;
+                    case "L":
+                        currentX -= length;
+                        break;
+                    case "R":
+                        currentX += length;
+                        break;
                 }
+
+                points.Add((currentX, currentY));
             }
 
-            return area;
+            return points;
         }
 
-        // https://stackoverflow.com/a/57624683/11186555 but with a fix cause it's incorrect
-        private static bool IsPointInPolygon((int X, int Y) point, IList<(int X, int Y)> polygon)
+        private static long CalculateVolume(IReadOnlyList<(long X, long Y)> points)
         {
-            var intersects = new List<int>();
-            var a = polygon.Last();
-            foreach (var b in polygon)
+            // Calculate inner area through shoelace formula (https://stackoverflow.com/a/16281192/11186555)
+            var innerVolume = Math.Abs(points.Take(points.Count - 1)
+                .Select((p, i) => (points[i + 1].X - p.X) * (points[i + 1].Y + p.Y))
+                .Sum() / 2);
+
+            // To get the total area, use Pick's theorem, but since only vertices are stored and not all the points on the edges, calculate the sum of points on edges first
+            // Since the lines always are horizontal or vertical, it's simple math
+            long pointsOnEdges = 0;
+            for (var i = 0; i < points.Count - 1; i++)
             {
-                if (b.X == point.X && b.Y == point.Y)
-                {
-                    return true;
-                }
-
-                if (b.X == a.X && point.X == a.X && point.Y >= Math.Min(a.Y, b.Y) && point.Y <= Math.Max(a.Y, b.Y))
-                {
-                    return true;
-                }
-
-                if (b.Y == a.Y && point.Y == a.Y && point.X >= Math.Min(a.X, b.X) && point.X <= Math.Max(a.X, b.X))
-                {
-                    return true;
-                }
-
-                if ((b.Y < point.Y && a.Y >= point.Y) || (a.Y < point.Y && b.Y >= point.Y))
-                {
-                    var px = (int)(b.X + 1.0 * (point.Y - b.Y) / (a.Y - b.Y) * (a.X - b.X));
-                    intersects.Add(px);
-                }
-
-                a = b;
+                pointsOnEdges += Math.Abs(points[i + 1].X - points[i].X) + Math.Abs(points[i + 1].Y - points[i].Y);
             }
 
-            intersects.Sort();
-            return intersects.IndexOf(point.X) % 2 == 0 || intersects.Count(x => x < point.X) % 2 == 1;
+            // + 1 instead of - 1 gives correct result, why?
+            return innerVolume + pointsOnEdges / 2 + 1;
         }
     }
 }
