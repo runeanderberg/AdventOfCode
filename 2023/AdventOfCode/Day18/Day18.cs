@@ -35,42 +35,97 @@
                 points.Add((currentX, currentY));
             }
 
+            points = TranslatePoints(points);
+            var volume = CalculateVolume(points);
+
+            var lengthX = points.Max(space => space.X) + 1;
+            var lengthY = points.Max(space => space.Y) + 1;
+            
+            //for (var y = 0; y < lengthY; y++)
+            //{
+            //    for (var x = 0; x < lengthX; x++)
+            //    {
+            //        Console.BackgroundColor = IsPointInPolygon((x, y), points) ? ConsoleColor.DarkRed : ConsoleColor.Black;
+            //        Console.Write(points.Any(point => point.X == x && point.Y == y) ? '#' : '.');
+            //    }
+            //    Console.BackgroundColor = ConsoleColor.Black;
+            //    Console.Write("\n");
+            //}
+
+            Console.WriteLine($"First sum = {volume}");
+
+            digInstructions = lines.Select(line => line.Split(' '))
+                .Select(split => (Direction: DirectionNumberToString(split[^1][^2..^1]), Length: Convert.ToInt32(split[^1][2..^2], 16)));
+
+            currentX = 0;
+            currentY = 0;
+            points = new List<(int X, int Y)> { (0, 0) };
+
+            foreach (var (direction, length) in digInstructions)
+            {
+                switch (direction)
+                {
+                    case "U":
+                        currentY -= length;
+                        break;
+                    case "D":
+                        currentY += length;
+                        break;
+                    case "L":
+                        currentX -= length;
+                        break;
+                    case "R":
+                        currentX += length;
+                        break;
+                }
+
+                points.Add((currentX, currentY));
+            }
+
+            points = TranslatePoints(points);
+
+            // Calculating volume with point in polygon is just too slow, something something shoelace formula I'm guessing
+        }
+
+        private static string DirectionNumberToString(string direction)
+        {
+            return direction switch
+            {
+                "0" => "R",
+                "1" => "D",
+                "2" => "L",
+                "3" => "U",
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+            };
+        }
+
+        private static List<(int X, int Y)> TranslatePoints(IReadOnlyCollection<(int X, int Y)> points)
+        {
             var minX = points.Min(space => space.X);
             var minY = points.Min(space => space.Y);
 
-            points = points.Select(point => (point.X - minX, point.Y - minY)).ToList();
+            return points.Select(point => (point.X - minX, point.Y - minY)).ToList();
+        }
 
-            var maxX = points.Max(space => space.X);
-            var maxY = points.Max(space => space.Y);
+        private static long CalculateVolume(IList<(int X, int Y)> points)
+        {
+            var lengthX = points.Max(space => space.X) + 1;
+            var lengthY = points.Max(space => space.Y) + 1;
 
-            var lengthX = maxX + 1;
-            var lengthY = maxY + 1;
+            long area = 0;
 
-            var area = 0;
-            
             for (var y = 0; y < lengthY; y++)
             {
                 for (var x = 0; x < lengthX; x++)
                 {
-                    var inPolygon = IsPointInPolygon((x, y), points);
-
-                    if (inPolygon)
+                    if (IsPointInPolygon((x, y), points))
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkRed;
                         area++;
                     }
-                    else
-                    {
-                        Console.BackgroundColor = ConsoleColor.Black;
-                    }
-
-                    Console.Write(points.Any(point => point.X == x && point.Y == y) ? '#' : '.');
                 }
-                Console.BackgroundColor = ConsoleColor.Black;
-                Console.Write("\n");
             }
 
-            Console.WriteLine($"First sum = {area}");
+            return area;
         }
 
         // https://stackoverflow.com/a/57624683/11186555 but with a fix cause it's incorrect
