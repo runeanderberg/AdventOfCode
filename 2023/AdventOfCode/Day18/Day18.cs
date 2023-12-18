@@ -10,100 +10,102 @@
                 .Select(split => (Direction: split[0], Length: int.Parse(split[1])));
 
             // Start digging at (0, 0), store coordinates of dug spaces
-            var dugSpaces = new List<(int X, int Y)> { (0, 0) };
+            var points = new List<(int X, int Y)> { (0, 0) };
             var currentX = 0;
             var currentY = 0;
 
             foreach (var (direction, length) in digInstructions)
             {
-                var offsetX = 0;
-                var offsetY = 0;
-
                 switch (direction)
                 {
                     case "U":
-                        offsetY--;
+                        currentY -= length;
                         break;
                     case "D":
-                        offsetY++;
+                        currentY += length;
                         break;
                     case "L":
-                        offsetX--;
+                        currentX -= length;
                         break;
                     case "R":
-                        offsetX++;
+                        currentX += length;
                         break;
                 }
 
-                for (var i = 0; i < length; i++)
-                {
-                    currentX += offsetX;
-                    currentY += offsetY;
-                    dugSpaces.Add((currentX, currentY));
-                }
+                points.Add((currentX, currentY));
             }
 
-            // Move dug spaces coordinates into map (+ translate coordinates as digging can have happened at negative X and Y)
-            var minX = dugSpaces.Min(space => space.X);
-            var maxX = dugSpaces.Max(space => space.X);
-            var minY = dugSpaces.Min(space => space.Y);
-            var maxY = dugSpaces.Max(space => space.Y);
-            var dugMap = new bool[maxX - minX + 1,maxY - minY + 1];
-            foreach (var (x, y) in dugSpaces)
-            {
-                dugMap[x - minX, y - minY] = true;
-            }
+            var minX = points.Min(space => space.X);
+            var minY = points.Min(space => space.Y);
 
-            var lengthX = dugMap.GetLength(0);
-            var lengthY = dugMap.GetLength(1);
+            points = points.Select(point => (point.X - minX, point.Y - minY)).ToList();
 
-            var queue = new Queue<(int X, int Y)>();
-            queue.Enqueue((lengthX / 2, lengthY / 2));
-            
-            while (queue.Count > 0)
-            {
-                var (x, y) = queue.Dequeue();
+            var maxX = points.Max(space => space.X);
+            var maxY = points.Max(space => space.Y);
 
-                if (x < 0 || x >= lengthX || y < 0 || y >= lengthY)
-                {
-                    continue;
-                }
+            var lengthX = maxX + 1;
+            var lengthY = maxY + 1;
 
-                if (dugMap[x, y])
-                {
-                    continue;
-                }
-
-                dugMap[x, y] = true;
-
-                queue.Enqueue((x - 1, y));
-                queue.Enqueue((x + 1, y));
-                queue.Enqueue((x, y - 1));
-                queue.Enqueue((x, y + 1));
-            }
+            var area = 0;
             
             for (var y = 0; y < lengthY; y++)
             {
                 for (var x = 0; x < lengthX; x++)
                 {
-                    Console.Write(dugMap[x, y] ? '#' : '.');
+                    var inPolygon = IsPointInPolygon((x, y), points);
+
+                    if (inPolygon)
+                    {
+                        Console.BackgroundColor = ConsoleColor.DarkRed;
+                        area++;
+                    }
+                    else
+                    {
+                        Console.BackgroundColor = ConsoleColor.Black;
+                    }
+
+                    Console.Write(points.Any(point => point.X == x && point.Y == y) ? '#' : '.');
                 }
+                Console.BackgroundColor = ConsoleColor.Black;
                 Console.Write("\n");
             }
 
-            var area = 0;
-            for (var x = 0; x < lengthX; x++)
+            Console.WriteLine($"First sum = {area}");
+        }
+
+        // https://stackoverflow.com/a/57624683/11186555 but with a fix cause it's incorrect
+        private static bool IsPointInPolygon((int X, int Y) point, IList<(int X, int Y)> polygon)
+        {
+            var intersects = new List<int>();
+            var a = polygon.Last();
+            foreach (var b in polygon)
             {
-                for (var y = 0; y < lengthY; y++)
+                if (b.X == point.X && b.Y == point.Y)
                 {
-                    if (dugMap[x, y])
-                    {
-                        area++;
-                    }
+                    return true;
                 }
+
+                if (b.X == a.X && point.X == a.X && point.Y >= Math.Min(a.Y, b.Y) && point.Y <= Math.Max(a.Y, b.Y))
+                {
+                    return true;
+                }
+
+                if (b.Y == a.Y && point.Y == a.Y && point.X >= Math.Min(a.X, b.X) && point.X <= Math.Max(a.X, b.X))
+                {
+                    return true;
+                }
+
+                if ((b.Y < point.Y && a.Y >= point.Y) || (a.Y < point.Y && b.Y >= point.Y))
+                {
+                    var px = (int)(b.X + 1.0 * (point.Y - b.Y) / (a.Y - b.Y) * (a.X - b.X));
+                    intersects.Add(px);
+                }
+
+                a = b;
             }
 
-            Console.WriteLine($"First sum = {area}");
+            intersects.Sort();
+            return intersects.IndexOf(point.X) % 2 == 0 || intersects.Count(x => x < point.X) % 2 == 1;
         }
     }
 }
