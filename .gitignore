@@ -1,5 +1,6 @@
 # Ignore input files
 *input*.txt
+/2022/AdventOfCode/inputs/*
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,java,intellij,csharp,dotnetcore,visualstudio
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,java,intellij,csharp,dotnetcore,visualstudio
