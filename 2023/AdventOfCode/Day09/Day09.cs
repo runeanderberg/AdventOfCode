@@ -6,7 +6,9 @@
         {
             var lines = File.ReadLines("input.txt").ToArray();
 
-            var patternData = lines.Select(line => line.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray()).Select(CreatePatternData).ToArray();
+            var patternData = lines
+                .Select(line => line.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray())
+                .Select(CreatePatternData).ToArray();
 
             var firstSum = patternData.Select(ExtrapolateNextValue).Sum();
 
@@ -56,7 +58,7 @@
 
             foreach (var array in input)
             {
-                value = - value + array[0];
+                value = -value + array[0];
             }
 
             return value;

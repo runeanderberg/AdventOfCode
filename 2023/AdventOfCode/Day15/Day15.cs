@@ -9,7 +9,6 @@
             var steps = input.Split(',');
             var firstSum = steps.Sum(Hash);
 
-            
 
             var boxes = new List<(string Label, char FocalLength)>[256];
             for (var i = 0; i < boxes.Length; i++)

@@ -5,14 +5,15 @@
         static void Main(string[] args)
         {
             var lines = File.ReadLines("input.txt").ToArray();
-            
+
             var digInstructions = lines.Select(line => line.Split(' '))
                 .Select(split => (Direction: split[0], Length: long.Parse(split[1])));
             var vertices = GetVerticesFromDigInstructions(digInstructions);
             var firstVolume = CalculateVolume(vertices);
 
             digInstructions = lines.Select(line => line.Split(' '))
-                .Select(split => (Direction: DirectionNumberToString(split[^1][^2..^1]), Length: Convert.ToInt64(split[^1][2..^2], 16)));
+                .Select(split => (Direction: DirectionNumberToString(split[^1][^2..^1]),
+                    Length: Convert.ToInt64(split[^1][2..^2], 16)));
             vertices = GetVerticesFromDigInstructions(digInstructions);
             var secondVolume = CalculateVolume(vertices);
 
@@ -31,7 +32,8 @@
             };
         }
 
-        private static List<(long X, long Y)> GetVerticesFromDigInstructions(IEnumerable<(string Direction, long length)> instructions)
+        private static List<(long X, long Y)> GetVerticesFromDigInstructions(
+            IEnumerable<(string Direction, long length)> instructions)
         {
             // Start digging at (0, 0), store coordinates of dug spaces
             var points = new List<(long X, long Y)> { (0, 0) };

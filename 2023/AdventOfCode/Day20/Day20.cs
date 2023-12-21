@@ -69,7 +69,8 @@
                 }
             }
 
-            Console.WriteLine($"Numbers of low and high pulses (low, high) = ({lowPulses}, {highPulses}), gives {lowPulses * highPulses}");
+            Console.WriteLine(
+                $"Numbers of low and high pulses (low, high) = ({lowPulses}, {highPulses}), gives {lowPulses * highPulses}");
         }
     }
 
@@ -79,6 +80,7 @@
 
         public readonly IEnumerable<string> Receivers = receivers;
         public abstract IEnumerable<(string Sender, string Receiver, bool High)> Process(string sender, bool high);
+
         internal void Print(string sender, bool high)
         {
             if (!DoPrint)

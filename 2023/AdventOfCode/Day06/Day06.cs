@@ -1,4 +1,5 @@
 ﻿namespace Day06;
+
 internal class Day06
 {
     public static void Main(string[] args)

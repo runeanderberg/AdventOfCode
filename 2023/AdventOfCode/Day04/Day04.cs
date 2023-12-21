@@ -5,7 +5,7 @@ var cards = new int[lines.Length];
 for (var i = 0; i < lines.Length; i++)
 {
     var numbers = lines[i].Split(':')[1].Split('|');
-    
+
     var winningNumbers = numbers[0].Split(' ').Where(s => s != "").Select(int.Parse);
     var otherNumbers = numbers[1].Split(' ').Where(s => s != "").Select(int.Parse);
 

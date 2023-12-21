@@ -1,4 +1,6 @@
-﻿namespace Day17
+﻿using Helpers;
+
+namespace Day17
 {
     internal class Day17
     {
@@ -7,24 +9,13 @@
 
         static void Main(string[] args)
         {
-            var lines = File.ReadLines("example_input_1.txt").ToArray();
-
-            var input = new int[lines.Length, lines[0].Length];
-
-            for (var row = 0; row < lines.Length; row++)
-            {
-                for (var col = 0; col < lines[row].Length; col++)
-                {
-                    input[row, col] = lines[row][col] - '0';
-                }
-            }
+            var input = File.ReadLines("example_input_1.txt").To2DArray(c => c - '0');
 
             _maxRow = input.GetLength(0);
             _maxCol = input.GetLength(1);
 
             // Start, top-left (0, 0), end bottom-right (maxRow - 1, maxCol - 1)
 
-            
 
             // Printing stuff
             for (var row = 0; row < _maxRow; row++)

@@ -1,21 +1,13 @@
-﻿namespace Day14
+﻿using Helpers;
+
+namespace Day14
 {
     internal class Day14
     {
         static void Main(string[] args)
         {
-            var lines = File.ReadLines("input.txt").ToArray();
+            var input = File.ReadLines("input.txt").To2DArray(c => c);
 
-            var input = new char[lines.Length, lines[0].Length];
-
-            for (var row = 0; row < lines.Length; row++)
-            {
-                for (var col = 0; col < lines[row].Length; col++)
-                {
-                    input[row, col] = lines[row][col];
-                }
-            }
-            
             TiltNorth(input);
 
             var firstLoad = CalculateNorthLoad(input);
@@ -72,8 +64,8 @@
                 {
                     if (input[row, col] == '.')
                         continue;
-                    
-                    if (input[row, col] == '#') 
+
+                    if (input[row, col] == '#')
                     {
                         stoppingPoints[col] = row + 1;
                         continue;
@@ -206,7 +198,8 @@
         private static bool MultiDimensionalArraysAreEqual<T>(T[,] input1, T[,] input2)
         {
             return input1.Rank == input2.Rank &&
-                   Enumerable.Range(0, input1.Rank).All(dimension => input1.GetLength(dimension) == input2.GetLength(dimension)) &&
+                   Enumerable.Range(0, input1.Rank)
+                       .All(dimension => input1.GetLength(dimension) == input2.GetLength(dimension)) &&
                    input1.Cast<T>().SequenceEqual(input2.Cast<T>());
         }
     }

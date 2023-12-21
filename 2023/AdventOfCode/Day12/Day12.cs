@@ -30,7 +30,7 @@ namespace Day12
             var data = row.Split(' ');
             var pattern = new StringBuilder(data[0]);
             var numbers = new StringBuilder(data[1]);
-            
+
             for (var i = 0; i < 4; i++)
             {
                 pattern.Append('?').Append(data[0]);

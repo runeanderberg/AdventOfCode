@@ -1,4 +1,6 @@
-﻿namespace Day08
+﻿using Helpers;
+
+namespace Day08
 {
     internal class Day08
     {
@@ -13,7 +15,8 @@
             lines[2..].Select(line => line.Split("=", StringSplitOptions.TrimEntries)).ToList().ForEach(
                 input =>
                 {
-                    var directions = input[1].Split(',', StringSplitOptions.TrimEntries).Select(direction => direction.Replace("(", "").Replace(")", "")).ToArray();
+                    var directions = input[1].Split(',', StringSplitOptions.TrimEntries)
+                        .Select(direction => direction.Replace("(", "").Replace(")", "")).ToArray();
                     instructions.Add(input[0], (directions[0], directions[1]));
                 });
 
@@ -38,7 +41,7 @@
             }
 
             var currents = instructions.Where(pair => pair.Key[^1] == 'A').Select(pair => pair.Key).ToArray();
-            var individualSteps = new int[currents.Length];
+            var individualSteps = new long[currents.Length];
 
             for (var i = 0; i < currents.Length; i++)
             {
@@ -63,29 +66,7 @@
                 }
             }
 
-            Console.WriteLine($"Steps needed (part 1, part 2) = {steps}, {LCM(individualSteps)}");
-        }
-
-        private static long LCM(IReadOnlyList<int> array)
-        {
-            long lcm = array[0];
-            for (var i = 1; i < array.Count; i++)
-            {
-                var gcdVal = GCD(lcm, array[i]);
-                lcm = (lcm * array[i]) / gcdVal;
-            }
-            return lcm;
-        }
-
-        private static long GCD(long a, long b)
-        {
-            while (true)
-            {
-                if (b == 0) return a;
-                var c = a;
-                a = b;
-                b = c % b;
-            }
+            Console.WriteLine($"Steps needed (part 1, part 2) = {steps}, {Maths.LCM(individualSteps)}");
         }
     }
 }

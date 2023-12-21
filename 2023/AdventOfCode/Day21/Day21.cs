@@ -1,25 +1,14 @@
-﻿namespace Day21
+﻿using Helpers;
+
+namespace Day21
 {
     internal class Day21
     {
         static void Main(string[] args)
         {
-            var lines = File.ReadLines("input.txt").ToArray();
+            var map = File.ReadLines("input.txt").To2DArray(c => c);
 
-            var map = new char[lines.Length, lines[0].Length];
-
-            (int Row, int Col) start = (0, 0);
-
-            for (var row = 0; row < lines.Length; row++)
-            {
-                for (var col = 0; col < lines[row].Length; col++)
-                {
-                    map[row, col] = lines[row][col];
-
-                    if (map[row, col] == 'S')
-                        start = (row, col);
-                }
-            }
+            (int Row, int Col) start = map.IndexOf('S');
 
             var rowLength = map.GetLength(0);
             var colLength = map.GetLength(1);
@@ -54,10 +43,10 @@
                     ((row, col + 1), remainingSteps - 1),
                     ((row, col - 1), remainingSteps - 1)
                 };
-                
+
                 foreach (var step in toCheck
-                             .Where(step => step.Position.Row >= 0 && step.Position.Row < rowLength && 
-                                            step.Position.Col >= 0 && step.Position.Col < colLength && 
+                             .Where(step => step.Position.Row >= 0 && step.Position.Row < rowLength &&
+                                            step.Position.Col >= 0 && step.Position.Col < colLength &&
                                             map[step.Position.Row, step.Position.Col] != '#'))
                 {
                     queue.Enqueue(step);
@@ -69,11 +58,15 @@
             {
                 for (var col = 0; col < colLength; col++)
                 {
-                    Console.BackgroundColor = visitedMap[row, col]?.Any(i => i == 0) ?? false ? ConsoleColor.DarkGreen : ConsoleColor.Black;
+                    Console.BackgroundColor = visitedMap[row, col]?.Any(i => i == 0) ?? false
+                        ? ConsoleColor.DarkGreen
+                        : ConsoleColor.Black;
                     Console.Write(map[row, col]);
                 }
+
                 Console.Write('\n');
             }
+
             Console.WriteLine();
 
             Console.WriteLine($"First sum = {endPoints.Distinct().Count()}");

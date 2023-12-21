@@ -1,4 +1,5 @@
-﻿using static Day16.Beam;
+﻿using Helpers;
+using static Day16.Beam;
 
 namespace Day16
 {
@@ -6,17 +7,7 @@ namespace Day16
     {
         static void Main(string[] args)
         {
-            var lines = File.ReadLines("input.txt").ToArray();
-
-            var input = new char[lines.Length, lines[0].Length];
-
-            for (var row = 0; row < lines.Length; row++)
-            {
-                for (var col = 0; col < lines[row].Length; col++)
-                {
-                    input[row, col] = lines[row][col];
-                }
-            }
+            var input = File.ReadLines("input.txt").To2DArray(c => c);
 
             var startBeams = new List<Beam>();
             var maxRow = input.GetLength(0);

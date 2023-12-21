@@ -1,26 +1,14 @@
-﻿namespace Day10
+﻿using Helpers;
+
+namespace Day10
 {
     internal class Day10
     {
         static void Main(string[] args)
         {
-            var lines = File.ReadLines("input.txt").ToArray();
+            var map = File.ReadLines("input.txt").To2DArray(c => c).Transpose();
 
-            var map = new char[lines[0].Length, lines.Length];
-            (int Longitude, int Latitude) startCoordinates = (0, 0);
-
-            for (var latitude = 0; latitude < lines.Length; latitude++)
-            {
-                for (var longitude = 0; longitude < lines[0].Length; longitude++)
-                {
-                    map[longitude, latitude] = lines[latitude][longitude];
-
-                    if (map[longitude, latitude] == 'S')
-                    {
-                        startCoordinates = (longitude, latitude);
-                    }
-                }
-            }
+            (int Longitude, int Latitude) startCoordinates = map.IndexOf('S');
 
             var longitudeLength = map.GetLength(0);
             var latitudeLength = map.GetLength(1);
@@ -80,7 +68,7 @@
 
                 currentLongitude += longitudeDifference;
                 currentLatitude += latitudeDifference;
-                
+
                 pathMap[previousLongitude, previousLatitude] = map[previousLongitude, previousLatitude];
 
                 steps++;
@@ -229,13 +217,14 @@
         {
             if (longitude + 1 == map.GetLength(0))
                 return false;
-            
+
             // Pipe east of self has to be -, J, 7, or S
             var c = map[longitude + 1, latitude];
             return c is '-' or 'J' or '7';
         }
 
-        private static (int LongitudeDifference, int LatitudeDifference) GetNextDiff(char current, (int LongitudeDifference, int LatitudeDifference) previous)
+        private static (int LongitudeDifference, int LatitudeDifference) GetNextDiff(char current,
+            (int LongitudeDifference, int LatitudeDifference) previous)
         {
             return current switch
             {

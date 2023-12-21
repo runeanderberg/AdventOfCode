@@ -1,4 +1,6 @@
-﻿namespace Day13
+﻿using Helpers;
+
+namespace Day13
 {
     internal class Day13
     {
@@ -16,26 +18,20 @@
             for (var i = 0; i < indexes.Count - 1; i++)
             {
                 var inputLines = lines[(indexes[i] + 1)..indexes[i + 1]];
-                var input = new char[inputLines.Length, inputLines[0].Length];
-
-                for (var row = 0; row < inputLines.Length; row++)
-                {
-                    for (var col = 0; col < inputLines[row].Length; col++)
-                    {
-                        input[row, col] = inputLines[row][col];
-                    }
-                }
-
-                inputs.Add(input);
+                inputs.Add(inputLines.To2DArray(c => c));
             }
 
             // Search for horizontal reflections
-            var potentialHorizontal = inputs.Select(input => (Input: input, Rows: FindPotentialHorizontalReflections(input)));
-            var horizontalSum = potentialHorizontal.Sum(potential => potential.Rows.Sum(row => TestHorizontalReflection(potential.Input, row)));
+            var potentialHorizontal =
+                inputs.Select(input => (Input: input, Rows: FindPotentialHorizontalReflections(input)));
+            var horizontalSum = potentialHorizontal.Sum(potential =>
+                potential.Rows.Sum(row => TestHorizontalReflection(potential.Input, row)));
 
             // Search for vertical reflections
-            var potentialVertical = inputs.Select(input => (Input: input, Cols: FindPotentialVerticalReflections(input)));
-            var verticalSum = potentialVertical.Sum(potential => potential.Cols.Sum(row => TestVerticalReflection(potential.Input, row)));
+            var potentialVertical =
+                inputs.Select(input => (Input: input, Cols: FindPotentialVerticalReflections(input)));
+            var verticalSum = potentialVertical.Sum(potential =>
+                potential.Cols.Sum(row => TestVerticalReflection(potential.Input, row)));
 
 
             Console.WriteLine($"First sum = {horizontalSum + verticalSum}");
@@ -105,7 +101,7 @@
                 a--;
                 b++;
             }
-            
+
             return 100 * (startRow + 1);
         }
 
