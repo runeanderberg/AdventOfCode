@@ -67,6 +67,52 @@
             }
 
             Console.WriteLine($"First sum = {canBeRemoved}");
+
+            var connectionsDictionary =
+                connections.ToDictionary(connection => connection.Bottom, connection => connection.OnTop);
+
+            // For each brick, calculate number of bricks that would fall if it got removed, and sum it all up
+            var fallingCount = 0;
+            foreach (var brick in bricks)
+            {
+                // If no bricks rest on it, 0 will fall
+                if (connectionsDictionary[brick].Count == 0)
+                    continue;
+
+                // Else, work upwards and sum somehow
+                var queue = new Queue<Brick>();
+                queue.Enqueue(brick);
+
+                var willFall = new HashSet<Brick>();
+                var hasBeenChecked = new HashSet<Brick>();
+
+                while (queue.Count > 0)
+                {
+                    var current = queue.Dequeue();
+
+                    if (hasBeenChecked.Contains(current))
+                        continue;
+
+                    hasBeenChecked.Add(current);
+
+                    var onTop = connectionsDictionary[current];
+
+                    foreach (var b in onTop)
+                    {
+                        // b rest on another brick that is not part of the willFall list
+                        if (connections.Where(connection => connection.Bottom != current && !willFall.Contains(connection.Bottom))
+                            .Any(connection => connection.OnTop.Contains(b)))
+                            continue;
+
+                        willFall.Add(b);
+                        queue.Enqueue(b);
+                    }
+                }
+
+                fallingCount += willFall.Count;
+            }
+
+            Console.WriteLine($"Second sum = {fallingCount}");
         }
     }
 
