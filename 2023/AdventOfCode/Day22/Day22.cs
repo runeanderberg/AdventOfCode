@@ -21,41 +21,43 @@
             // Move bricks to as low of a Z-value as possible
             foreach (var brick in bricks.OrderBy(b => b.End.Z))
             {
-                // First, check for bricks with a lower Z that overlaps in X and Y
-                var overlapping = bricks.Where(b => b.End.Z < brick.Start.Z && b.HasXYOverlap(brick));
+                // First, check for lowest (end) Z in bricks that overlaps in X and Y
+                var lowestZ = bricks.Where(b => b.End.Z < brick.Start.Z && b.HasXYOverlap(brick))
+                    .DefaultIfEmpty().Max(b => b?.End.Z);
 
                 // If no overlap, move brick down to Z = 1
-                if (!overlapping.Any())
+                if (lowestZ is null)
                 {
                     brick.Start.Z = 1;
+                    continue;
                 }
-                // Get largest Z in overlapping bricks, move brick down to that Z + 1
-                else
-                {
-                    var offset = brick.Start.Z - overlapping.Max(b => b.End.Z) - 1;
 
-                    if (offset == 0)
-                        continue;
+                // Else, check how far down to move the brick
+                var offset = brick.Start.Z - lowestZ.Value - 1;
 
-                    brick.Start.Z -= offset;
-                    brick.End.Z -= offset;
-                }
+                if (offset == 0)
+                    continue;
+
+                brick.Start.Z -= offset;
+                brick.End.Z -= offset;
             }
 
             // Map out which bricks rest on top of which bricks
             var connections =
                 bricks.Select(brick => (Bottom: brick, OnTop: bricks.Where(b => b.RestsOn(brick)).ToList())).ToList();
 
-            // Now, if bricks resting on the bottom brick all rests on another brick, the bottom brick can be removed
+            // Check which bricks can be removed
             var canBeRemoved = 0;
             foreach (var (bottom, onTop) in connections)
             {
+                // If no bricks resting on it, can be removed
                 if (onTop.Count == 0)
                 {
                     canBeRemoved++;
                     continue;
                 }
 
+                // If bricks resting on top of the bottom brick all rests on another brick, the bottom brick can be removed
                 var removable = onTop.All(brick =>
                     connections.Where(connection => connection.Bottom != bottom)
                         .Any(connection => connection.OnTop.Contains(brick)));
