@@ -1,4 +1,5 @@
 ﻿using System;
+using Helpers;
 
 namespace Day24
 {
@@ -39,13 +40,11 @@ namespace Day24
 
             var collisionsInFuture = collisionsInsideArea.Where(collision =>
             {
-                var changeA = (collision.Point.X - collision.A.Position.X,
-                    collision.Point.Y - collision.A.Position.Y);
-                var factorA = changeA.Item1 / collision.A.Velocity.X;
+                var changeA = collision.Point - collision.A.GetPosition2D();
+                var factorA = changeA.X / collision.A.Velocity.X;
 
-                var changeB = (collision.Point.X - collision.B.Position.X,
-                    collision.Point.Y - collision.B.Position.Y);
-                var factorB = changeB.Item1 / collision.B.Velocity.X;
+                var changeB = collision.Point - collision.B.GetPosition2D();
+                var factorB = changeB.X / collision.B.Velocity.X;
 
                 return factorA > 0 && factorB > 0;
             });
@@ -56,11 +55,13 @@ namespace Day24
 
     internal record Hailstone(Point3D Position, Point3D Velocity)
     {
+        public Point2D GetPosition2D() => new(Position.X, Position.Y);
+
         public (double A, double B, double C) GetStandardForm()
         {
             var p1 = Position;
             var p2 = Position + Velocity;
-            var m = ((double) (p2.Y - p1.Y)) / (p2.X - p1.X);
+            var m = (double) (p2.Y - p1.Y) / (p2.X - p1.X);
             return (-m, 1, (-m) * p1.X + p1.Y);
         }
 
@@ -72,22 +73,15 @@ namespace Day24
             return ours.A * others.B - others.A * ours.B == 0;
         }
 
-        public (double X, double Y) GetIntersectionPointWith(Hailstone other)
+        public Point2D GetIntersectionPointWith(Hailstone other)
         {
             var ours = GetStandardForm();
             var others = other.GetStandardForm();
 
             var det = ours.A * others.B - others.A * ours.B;
 
-            return ((others.B * ours.C - ours.B * others.C) / det,
-                    (ours.A * others.C - others.A * ours.C) / det);
+            return new Point2D((others.B * ours.C - ours.B * others.C) / det,
+                (ours.A * others.C - others.A * ours.C) / det);
         }
-    }
-
-    internal record Point3D(long X, long Y, long Z)
-    {
-        public static Point3D operator +(Point3D a, Point3D b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
-
-        public static Point3D operator -(Point3D a, Point3D b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
     }
 }
