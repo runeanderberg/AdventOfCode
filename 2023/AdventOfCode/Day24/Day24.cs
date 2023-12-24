@@ -31,8 +31,8 @@ namespace Day24
                 .Select(tuple => (A: tuple.Item1, B: tuple.Item2))
                 .ToList();
 
-            var collisions = pairs.Where(pair => !pair.A.IsParallelWith(pair.B))
-                .Select(pair => (Point: pair.A.GetIntersectionPointWith(pair.B), pair.A, pair.B))
+            var collisions = pairs.Where(pair => !pair.A.IsXYParallelWith(pair.B))
+                .Select(pair => (Point: pair.A.GetXYIntersectionPointWith(pair.B), pair.A, pair.B))
                 .ToList();
 
             var collisionsInsideArea = collisions.Where(collision =>
@@ -40,10 +40,10 @@ namespace Day24
 
             var collisionsInFuture = collisionsInsideArea.Where(collision =>
             {
-                var changeA = collision.Point - collision.A.GetPosition2D();
+                var changeA = collision.Point - collision.A.GetPositionXY();
                 var factorA = changeA.X / collision.A.Velocity.X;
 
-                var changeB = collision.Point - collision.B.GetPosition2D();
+                var changeB = collision.Point - collision.B.GetPositionXY();
                 var factorB = changeB.X / collision.B.Velocity.X;
 
                 return factorA > 0 && factorB > 0;
@@ -55,9 +55,9 @@ namespace Day24
 
     internal record Hailstone(Point3D Position, Point3D Velocity)
     {
-        public Point2D GetPosition2D() => new(Position.X, Position.Y);
+        public Point2D GetPositionXY() => new(Position.X, Position.Y);
 
-        public (double A, double B, double C) GetStandardForm()
+        public (double A, double B, double C) GetXYStandardForm()
         {
             var p1 = Position;
             var p2 = Position + Velocity;
@@ -65,18 +65,18 @@ namespace Day24
             return (-m, 1, (-m) * p1.X + p1.Y);
         }
 
-        public bool IsParallelWith(Hailstone other)
+        public bool IsXYParallelWith(Hailstone other)
         {
-            var ours = GetStandardForm();
-            var others = other.GetStandardForm();
+            var ours = GetXYStandardForm();
+            var others = other.GetXYStandardForm();
 
             return ours.A * others.B - others.A * ours.B == 0;
         }
 
-        public Point2D GetIntersectionPointWith(Hailstone other)
+        public Point2D GetXYIntersectionPointWith(Hailstone other)
         {
-            var ours = GetStandardForm();
-            var others = other.GetStandardForm();
+            var ours = GetXYStandardForm();
+            var others = other.GetXYStandardForm();
 
             var det = ours.A * others.B - others.A * ours.B;
 
