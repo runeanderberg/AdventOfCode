@@ -100,7 +100,8 @@
                     foreach (var b in onTop)
                     {
                         // b rest on another brick that is not part of the willFall list
-                        if (connections.Where(connection => connection.Bottom != current && !willFall.Contains(connection.Bottom))
+                        if (connections.Where(connection =>
+                                connection.Bottom != current && !willFall.Contains(connection.Bottom))
                             .Any(connection => connection.OnTop.Contains(b)))
                             continue;
 

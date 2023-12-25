@@ -16,7 +16,7 @@ namespace Day23
 
             for (var col = 0; col < colLength; col++)
             {
-                if (map[0, col] != '.') 
+                if (map[0, col] != '.')
                     continue;
                 start = (0, col);
 
@@ -74,6 +74,7 @@ namespace Day23
                         {
                             queue.Enqueue(step);
                         }
+
                         break;
                     case '>':
                         queue.Enqueue((row, col + 1, new List<(int Row, int Col)>(previousSteps) { (row, col + 1) }));
@@ -83,11 +84,12 @@ namespace Day23
                         break;
                 }
             }
-            
+
             return stepsMap[end.Row, end.Col];
         }
 
-        private static int FindLongestNonSlipperyPathLength(char[,] map, (int Row, int Col) start, (int Row, int Col) end)
+        private static int FindLongestNonSlipperyPathLength(char[,] map, (int Row, int Col) start,
+            (int Row, int Col) end)
         {
             var rowLength = map.GetLength(0);
             var colLength = map.GetLength(1);
@@ -97,7 +99,7 @@ namespace Day23
 
             var stepsMap = new int[rowLength, colLength];
             var paths = new List<HashSet<(int Row, int Col)>>();
-            
+
             while (queue.Count > 0)
             {
                 var (row, col, previousSteps) = queue.Dequeue();
@@ -131,7 +133,7 @@ namespace Day23
                     queue.Enqueue(step);
                 }
             }
-            
+
             var path = paths.MaxBy(path => path.Count);
 
             Console.WriteLine();
@@ -142,6 +144,7 @@ namespace Day23
                     Console.BackgroundColor = path!.Contains((row, col)) ? ConsoleColor.DarkGreen : ConsoleColor.Black;
                     Console.Write(map[row, col]);
                 }
+
                 Console.ResetColor();
                 Console.Write('\n');
             }

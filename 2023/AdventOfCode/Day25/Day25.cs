@@ -1,5 +1,4 @@
 ﻿using Helpers;
-using System.ComponentModel;
 
 namespace Day25
 {
@@ -33,69 +32,69 @@ namespace Day25
                 }
             }
 
-           
+
             // Flood fill from each node, count number of times each edge has been passed
-            var edgeDict = new Dictionary<Edge, int>();
+            var edgeCounts = new Dictionary<Edge, int>();
+            var queue = new Queue<(Component Component, HashSet<Edge> Previous)>();
+            var visited = new HashSet<Component>();
 
-            foreach (var component in componentMap)
+            foreach (var pair in componentMap)
             {
-                var queue = new Queue<(Component Component, HashSet<Edge> Previous)>();
-                queue.Enqueue((component.Value, new HashSet<Edge>()));
-
-                var visited = new HashSet<Component>();
+                queue.Enqueue((pair.Value, new HashSet<Edge>()));
+                visited.Clear();
 
                 while (queue.Count > 0)
                 {
-                    var current = queue.Dequeue();
+                    var (component, previous) = queue.Dequeue();
 
-                    if (visited.Contains(current.Component))
+                    if (visited.Contains(component))
                     {
-                        foreach (var previous in current.Previous)
+                        foreach (var edge in previous)
                         {
-                            edgeDict.AddOrIncrement(previous, 1);
+                            edgeCounts.AddOrIncrement(edge, 1);
                         }
+
                         continue;
                     }
 
-                    visited.Add(current.Component);
+                    visited.Add(component);
 
-                    foreach (var edge in current.Component.Connections)
+                    foreach (var edge in component.Connections)
                     {
-                        queue.Enqueue((edge.Other(current.Component), new HashSet<Edge>(current.Previous) { edge }));
+                        queue.Enqueue((edge.Other(component), new HashSet<Edge>(previous) { edge }));
                     }
                 }
             }
 
-            // Remove most visited edges
-            edgeDict.OrderByDescending(pair => pair.Value).Take(3).ToList().ForEach(pair => pair.Key.Destroy());
-
-            int visitedCount;
-            // Flood fill once from any node, reachable nodes is one cluster, the rest is the other
+            // Remove 3 most visited edges
+            foreach (var edge in edgeCounts.OrderByDescending(pair => pair.Value).Take(3).Select(pair => pair.Key))
             {
-                var queue = new Queue<(Component Component, HashSet<Edge> Previous)>();
-                queue.Enqueue((componentMap.First().Value, new HashSet<Edge>()));
+                edge.Destroy();
+            }
 
-                var visited = new HashSet<Component>();
+            // Flood fill once from any node, reachable nodes is one cluster, the rest is the other
+            queue.Enqueue((componentMap.First().Value, new HashSet<Edge>()));
+            visited.Clear();
 
-                while (queue.Count > 0)
+            while (queue.Count > 0)
+            {
+                var (component, previous) = queue.Dequeue();
+
+                if (visited.Contains(component))
                 {
-                    var current = queue.Dequeue();
-
-                    if (visited.Contains(current.Component))
-                    {
-                        continue;
-                    }
-
-                    visited.Add(current.Component);
-
-                    foreach (var edge in current.Component.Connections)
-                    {
-                        queue.Enqueue((edge.Other(current.Component), new HashSet<Edge>(current.Previous) { edge }));
-                    }
+                    continue;
                 }
 
-                visitedCount = visited.Count;
+                visited.Add(component);
+
+                foreach (var edge in component.Connections)
+                {
+                    queue.Enqueue((edge.Other(component), new HashSet<Edge>(previous) { edge }));
+                }
             }
+
+            var visitedCount = visited.Count;
+
 
             Console.WriteLine($"First sum = {(componentMap.Count - visitedCount) * visitedCount}");
         }

@@ -1,5 +1,4 @@
-﻿using System;
-using Helpers;
+﻿using Helpers;
 
 namespace Day24
 {
@@ -18,7 +17,8 @@ namespace Day24
                 var position = input[0].Split(',', StringSplitOptions.TrimEntries).Select(long.Parse).ToArray();
                 var velocity = input[1].Split(',', StringSplitOptions.TrimEntries).Select(long.Parse).ToArray();
 
-                hailstones.Add(new Hailstone(new Point3D(position[0], position[1], position[2]), new Point3D(velocity[0], velocity[1], velocity[2])));
+                hailstones.Add(new Hailstone(new Point3D(position[0], position[1], position[2]),
+                    new Point3D(velocity[0], velocity[1], velocity[2])));
             }
 
             const long minX = 200000000000000;
